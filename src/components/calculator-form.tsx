@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, BrickWall } from 'lucide-react';
+import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Separator } from './ui/separator';
@@ -38,11 +38,10 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type OuvrageValues = z.infer<typeof ouvrageSchema>;
-type ComponentValues = z.infer<typeof componentSchema>;
 
 const concreteDosages = {
     "150": { name: "Béton de propreté (150 kg/m³)", cement: 150, sand: 0.4, gravel: 0.8, water: 75 },
+    "200": { name: "Béton pour fondations légères (200 kg/m³)", cement: 200, sand: 0.45, gravel: 0.85, water: 100 },
     "250": { name: "Fondations / Semelles (250 kg/m³)", cement: 250, sand: 0.5, gravel: 0.9, water: 125 },
     "300": { name: "Dallage / Chaussées (300 kg/m³)", cement: 300, sand: 0.4, gravel: 0.7, water: 150 },
     "350": { name: "Poteaux / Poutres / Chaînages (350 kg/m³)", cement: 350, sand: 0.4, gravel: 0.6, water: 175 },
@@ -73,7 +72,11 @@ type CalculationResult = {
 const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: Control<FormValues>, ouvrageIndex: number, componentIndex: number }) => {
   const data = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}` });
 
-  const subtotal = (data.length || 0) * (data.width || 0) * (data.height || 0) * (data.quantity || 1);
+  const subtotal = useMemo(() => {
+    const { length = 0, width = 0, height = 0, quantity = 1 } = data || {};
+    return length * width * height * quantity;
+  }, [data]);
+
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
@@ -142,7 +145,7 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform -rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem className="sm:col-span-1"> <FormLabel className="sm:hidden">Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     
                     <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-1 gap-2">
@@ -197,6 +200,10 @@ export function CalculatorForm() {
 
   useEffect(() => {
     const calculateTotals = (values: FormValues) => {
+        if (!values.ouvrages) {
+            setCalculationResult(null);
+            return;
+        }
       let totalVolume = 0;
       const byDosage: CalculationResult['byDosage'] = [];
 
@@ -282,7 +289,10 @@ export function CalculatorForm() {
                             </div>
                             <div className="space-y-3 pt-4">
                                 <h4 className="font-semibold text-lg">Total des matériaux :</h4>
-                                <div className="flex items-center gap-3"> <BrickWall className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.cement}</span> sacs de ciment (50kg)</p> </div>
+                                <div className="flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.cement}</span> sacs de ciment (50kg)</p>
+                                </div>
                                 <div className="flex items-center gap-3"> <Sprout className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.sand.toFixed(2)}</span> m³ de sable</p> </div>
                                 <div className="flex items-center gap-3"> <Triangle className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.gravel.toFixed(2)}</span> m³ de gravier</p> </div>
                                 <div className="flex items-center gap-3"> <Droplets className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.water.toFixed(0)}</span> litres d'eau</p> </div>
