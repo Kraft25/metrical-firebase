@@ -35,11 +35,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 const concreteDosages = {
     "150": { name: "Béton de propreté (150 kg/m³)", cement: 150, sand: 0.4, gravel: 0.8, water: 75 },
-    "200": { name: "Béton de remplissage (200 kg/m³)", cement: 200, sand: 0.45, gravel: 0.85, water: 100 },
-    "250": { name: "Fondations, chaussées (250 kg/m³)", cement: 250, sand: 0.5, gravel: 0.9, water: 125 },
-    "300": { name: "Dallage, semelles (300 kg/m³)", cement: 300, sand: 0.4, gravel: 0.7, water: 150 },
-    "350": { name: "Béton armé courant (350 kg/m³)", cement: 350, sand: 0.4, gravel: 0.6, water: 175 },
-    "400": { name: "Haute résistance (400 kg/m³)", cement: 400, sand: 0.35, gravel: 0.55, water: 200 },
+    "250": { name: "Fondations / Semelles (250 kg/m³)", cement: 250, sand: 0.5, gravel: 0.9, water: 125 },
+    "300": { name: "Dallage / Chaussées (300 kg/m³)", cement: 300, sand: 0.4, gravel: 0.7, water: 150 },
+    "350": { name: "Poteaux / Poutres / Chaînages (350 kg/m³)", cement: 350, sand: 0.4, gravel: 0.6, water: 175 },
+    "400": { name: "Béton de haute résistance (400 kg/m³)", cement: 400, sand: 0.35, gravel: 0.55, water: 200 },
 };
 
 type CalculationResult = {
@@ -92,6 +91,8 @@ export function CalculatorForm() {
   
   const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
+  const watchedValues = useWatch({ control: form.control });
+
   const calculateTotals = (values: FormValues) => {
     const totalVolume = values.components.reduce((acc, comp) => {
         const { length = 0, width = 0, height = 0, quantity = 0 } = comp;
@@ -128,10 +129,8 @@ export function CalculatorForm() {
     calculateTotals(values);
   };
   
-  const watchedValues = useWatch({ control: form.control });
-
   useEffect(() => {
-    calculateTotals(form.getValues());
+      calculateTotals(form.getValues());
   }, [watchedValues, form]);
 
   
@@ -266,6 +265,7 @@ export function CalculatorForm() {
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Dosage du Béton</CardTitle>
+                        <CardDescription>Selon les normes de chantier ivoiriennes</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <FormField
