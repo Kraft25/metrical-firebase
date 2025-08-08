@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Ruler, Ungroup } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -41,11 +41,15 @@ const formSchema = z.object({
     return true;
 }, {
     message: "Les dimensions personnalisées doivent être positives.",
-    path: ['blockLength'], // You can also apply it to blockHeight or make it a global error
+    path: ['blockLength'],
 });
 
 
 type FormValues = z.infer<typeof formSchema>;
+type CalculationResult = {
+    blocksNeeded: number;
+    realSurface: number;
+} | null;
 
 export function BlockCalculatorForm() {
     const form = useForm<FormValues>({
@@ -60,7 +64,6 @@ export function BlockCalculatorForm() {
         },
     });
 
-    const watchedFields = useWatch({ control: form.control });
     const selectedBlockSize = useWatch({ control: form.control, name: 'blockSize' });
     
     useEffect(() => {
@@ -70,19 +73,21 @@ export function BlockCalculatorForm() {
             form.setValue('blockHeight', height);
         }
     }, [selectedBlockSize, form]);
+    
+    const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const [isCalculating, setIsCalculating] = useState(false);
-
-    const calculationResult = useMemo(() => {
-        const { wallLength, wallHeight, blockLength, blockHeight, jointThickness } = watchedFields;
+    const onSubmit = (values: FormValues) => {
+        const { wallLength, wallHeight, blockLength, blockHeight, jointThickness } = values;
 
         if (!wallLength || !wallHeight || !blockLength || !blockHeight) {
-            return { blocksNeeded: 0, realSurface: 0 };
+            setCalculationResult({ blocksNeeded: 0, realSurface: 0 });
+            return;
         }
         
         const blockSurfaceWithJoint = (blockLength + jointThickness) * (blockHeight + jointThickness);
         if (blockSurfaceWithJoint === 0) {
-            return { blocksNeeded: 0, realSurface: 0 };
+            setCalculationResult({ blocksNeeded: 0, realSurface: 0 });
+            return;
         }
         const wallSurface = wallLength * wallHeight;
         
@@ -91,19 +96,18 @@ export function BlockCalculatorForm() {
 
         const realSurface = blocksNeeded * blockLength * blockHeight;
 
-        return { blocksNeeded, realSurface };
-    }, [watchedFields]);
+        setCalculationResult({ blocksNeeded, realSurface });
+    };
 
     useEffect(() => {
-      setIsCalculating(true);
-      const timer = setTimeout(() => setIsCalculating(false), 500);
-      return () => clearTimeout(timer);
-    }, [calculationResult]);
+        // Initial calculation on mount
+        onSubmit(form.getValues());
+    }, []);
 
 
   return (
     <Form {...form}>
-      <form className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Calculateur de Parpaings</CardTitle>
@@ -213,28 +217,33 @@ export function BlockCalculatorForm() {
                 />
             </div>
           </CardContent>
+          <CardFooter>
+            <Button type="submit">Effectuer</Button>
+          </CardFooter>
         </Card>
         
-        <div className="mt-8">
-            <Card className="bg-accent/10 border-accent shadow-xl">
-            <CardHeader>
-                <CardTitle className="text-accent-foreground text-2xl">
-                Résultat du Calcul
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-8">
-                <div className="flex items-center gap-4">
-                    <Ungroup className="h-12 w-12 text-primary" />
-                    <div>
-                        <p className={`text-5xl font-bold transition-colors duration-500 ${isCalculating ? 'text-primary' : 'text-foreground'}`}>
-                        {calculationResult.blocksNeeded}
-                        </p>
-                        <p className="text-muted-foreground mt-1">Parpaings nécessaires (+5-10% de marge conseillée)</p>
+        {calculationResult && (
+            <div className="mt-8">
+                <Card className="bg-accent/10 border-accent shadow-xl">
+                <CardHeader>
+                    <CardTitle className="text-accent-foreground text-2xl">
+                    Résultat du Calcul
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center gap-8">
+                    <div className="flex items-center gap-4">
+                        <Ungroup className="h-12 w-12 text-primary" />
+                        <div>
+                            <p className="text-5xl font-bold text-foreground">
+                            {calculationResult.blocksNeeded}
+                            </p>
+                            <p className="text-muted-foreground mt-1">Parpaings nécessaires (+5-10% de marge conseillée)</p>
+                        </div>
                     </div>
-                </div>
-            </CardContent>
-            </Card>
-        </div>
+                </CardContent>
+                </Card>
+            </div>
+        )}
       </form>
     </Form>
   );

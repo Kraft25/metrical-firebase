@@ -42,25 +42,29 @@ const concreteDosages = {
     "400": { name: "Haute résistance (400 kg/m³)", cement: 400, sand: 0.35, gravel: 0.55, water: 200 },
 };
 
+type CalculationResult = {
+    totalVolume: number;
+    materials: {
+        cement: number;
+        sand: number;
+        gravel: number;
+        water: number;
+    };
+} | null;
+
+
 const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) => {
-  const [isCalculating, setIsCalculating] = useState(false);
   const data = useWatch({ control, name: `components.${index}` });
 
   const subtotal = useMemo(() => {
     const { length = 0, width = 0, height = 0, quantity = 0 } = data;
     return length * width * height * quantity;
   }, [data]);
-  
-  useEffect(() => {
-    setIsCalculating(true);
-    const timer = setTimeout(() => setIsCalculating(false), 500);
-    return () => clearTimeout(timer);
-  }, [subtotal])
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
       <FormLabel className="hidden sm:inline-block">Sous-Total</FormLabel>
-      <div className={`flex items-center justify-end sm:justify-center font-bold text-lg h-10 px-3 rounded-md border bg-card transition-colors duration-500 ${isCalculating ? 'text-primary' : 'text-foreground'}`}>
+      <div className="flex items-center justify-end sm:justify-center font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(2)} m³
       </div>
     </div>
@@ -87,56 +91,53 @@ export function CalculatorForm() {
     control: form.control,
     name: 'components',
   });
-
-  const watchedComponents = useWatch({
-    control: form.control,
-    name: 'components',
-  });
-
-  const selectedDosage = useWatch({
-    control: form.control,
-    name: 'dosage',
-  });
   
-  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-  const totalVolume = useMemo(() => {
-    return watchedComponents.reduce((acc, comp) => {
+  const calculateTotals = (values: FormValues) => {
+    const totalVolume = values.components.reduce((acc, comp) => {
         const { length = 0, width = 0, height = 0, quantity = 0 } = comp;
         return acc + (length * width * height * quantity);
     }, 0);
-  }, [watchedComponents]);
 
-  const materialQuantities = useMemo(() => {
-    if (!totalVolume || !selectedDosage) return { cement: 0, sand: 0, gravel: 0, water: 0 };
-    const dosageInfo = concreteDosages[selectedDosage as keyof typeof concreteDosages];
-    if (!dosageInfo) return { cement: 0, sand: 0, gravel: 0, water: 0 };
+    const dosageInfo = concreteDosages[values.dosage as keyof typeof concreteDosages];
+    if (!dosageInfo) {
+      setCalculationResult({
+        totalVolume,
+        materials: { cement: 0, sand: 0, gravel: 0, water: 0 },
+      });
+      return;
+    }
     
-    // Ciment en sacs de 35kg
     const totalCementKg = totalVolume * dosageInfo.cement;
     const cementBags = Math.ceil(totalCementKg / 35);
-    
-    // Sable en m³
     const totalSandM3 = totalVolume * dosageInfo.sand;
-    
-    // Gravier en m³
     const totalGravelM3 = totalVolume * dosageInfo.gravel;
-
-    // Eau en litres
     const totalWaterLiters = totalVolume * dosageInfo.water;
 
-    return { cement: cementBags, sand: totalSandM3, gravel: totalGravelM3, water: totalWaterLiters };
-  }, [totalVolume, selectedDosage]);
+    setCalculationResult({
+        totalVolume,
+        materials: {
+            cement: cementBags,
+            sand: totalSandM3,
+            gravel: totalGravelM3,
+            water: totalWaterLiters,
+        },
+    });
+  }
+
+  const onSubmit = (values: FormValues) => {
+    calculateTotals(values);
+  };
   
   useEffect(() => {
-    setIsCalculating(true);
-    const timer = setTimeout(() => setIsCalculating(false), 500);
-    return () => clearTimeout(timer);
-  }, [totalVolume, materialQuantities]);
+    // Initial calculation on mount
+    calculateTotals(form.getValues());
+  }, []);
 
   return (
     <Form {...form}>
-      <form>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -243,7 +244,7 @@ export function CalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter className="flex flex-col items-start space-y-4">
+                    <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                         <Button
                         type="button"
                         variant="outline"
@@ -252,6 +253,7 @@ export function CalculatorForm() {
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Ajouter un composant
                         </Button>
+                        <Button type="submit">Effectuer</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -285,43 +287,45 @@ export function CalculatorForm() {
                             />
                     </CardContent>
                  </Card>
-                 <Card className="bg-accent/10 border-accent shadow-xl">
-                    <CardHeader>
-                        <CardTitle className="text-accent-foreground text-2xl">
-                        Résultat Total
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <p className={`text-5xl font-bold transition-colors duration-500 ${isCalculating ? 'text-primary' : 'text-foreground'}`}>
-                            {totalVolume.toFixed(2)} m³
-                            </p>
-                            <p className="text-muted-foreground mt-1">Volume total de béton nécessaire</p>
-                        </div>
-                         <div className="space-y-3 pt-4">
-                            <h4 className="font-semibold text-lg">Quantités de matériaux :</h4>
-                            <div className="flex items-center gap-3">
-                                <BrickWall className="h-5 w-5 text-primary" />
-                                <p><span className={`font-bold text-xl ${isCalculating ? 'text-primary' : 'text-foreground'}`}>{materialQuantities.cement}</span> sacs de ciment (35kg)</p>
+                 {calculationResult && (
+                    <Card className="bg-accent/10 border-accent shadow-xl">
+                        <CardHeader>
+                            <CardTitle className="text-accent-foreground text-2xl">
+                            Résultat Total
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <p className="text-5xl font-bold text-foreground">
+                                {calculationResult.totalVolume.toFixed(2)} m³
+                                </p>
+                                <p className="text-muted-foreground mt-1">Volume total de béton nécessaire</p>
                             </div>
-                             <div className="flex items-center gap-3">
-                                <Sprout className="h-5 w-5 text-primary" />
-                                <p><span className={`font-bold text-xl ${isCalculating ? 'text-primary' : 'text-foreground'}`}>{materialQuantities.sand.toFixed(2)}</span> m³ de sable</p>
+                            <div className="space-y-3 pt-4">
+                                <h4 className="font-semibold text-lg">Quantités de matériaux :</h4>
+                                <div className="flex items-center gap-3">
+                                    <BrickWall className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.cement}</span> sacs de ciment (35kg)</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Sprout className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.sand.toFixed(2)}</span> m³ de sable</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Triangle className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.gravel.toFixed(2)}</span> m³ de gravier</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Droplets className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.water.toFixed(0)}</span> litres d'eau</p>
+                                </div>
+                                <CardDescription className="pt-2 text-xs">
+                                    Note: Ce sont des estimations. Prévoyez une marge de 5-10% pour les pertes.
+                                </CardDescription>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Triangle className="h-5 w-5 text-primary" />
-                                <p><span className={`font-bold text-xl ${isCalculating ? 'text-primary' : 'text-foreground'}`}>{materialQuantities.gravel.toFixed(2)}</span> m³ de gravier</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Droplets className="h-5 w-5 text-primary" />
-                                <p><span className={`font-bold text-xl ${isCalculating ? 'text-primary' : 'text-foreground'}`}>{materialQuantities.water.toFixed(0)}</span> litres d'eau</p>
-                            </div>
-                            <CardDescription className="pt-2 text-xs">
-                                Note: Ce sont des estimations. Prévoyez une marge de 5-10% pour les pertes.
-                            </CardDescription>
-                         </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                 )}
             </div>
         </div>
       </form>
