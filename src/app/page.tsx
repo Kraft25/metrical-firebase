@@ -1,5 +1,7 @@
 import { CalculatorForm } from '@/components/calculator-form';
-import { Calculator } from 'lucide-react';
+import { BlockCalculatorForm } from '@/components/block-calculator-form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calculator, Ungroup } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -16,7 +18,23 @@ export default function Home() {
             Calculez facilement et avec précision le métré de vos ouvrages.
           </p>
         </header>
-        <CalculatorForm />
+
+        <Tabs defaultValue="volume" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="volume">
+              <Calculator className="mr-2" /> Calcul de Volume
+            </TabsTrigger>
+            <TabsTrigger value="blocks">
+              <Ungroup className="mr-2" /> Calcul de Parpaings
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="volume" className="mt-6">
+            <CalculatorForm />
+          </TabsContent>
+          <TabsContent value="blocks" className="mt-6">
+            <BlockCalculatorForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );
