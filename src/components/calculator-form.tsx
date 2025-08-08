@@ -204,7 +204,10 @@ export function CalculatorForm() {
                                 <FormItem className="sm:col-span-2">
                                 <FormLabel className="sm:hidden">Hauteur (m)</FormLabel>
                                 <FormControl>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                                    <div className="relative">
+                                        <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform -rotate-90"/>
+                                        <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9" />
+                                    </div>
                                 </FormControl>
                                 </FormItem>
                             )}

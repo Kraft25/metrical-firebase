@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -37,7 +37,10 @@ type CalculationResult = {
 const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) => {
   const data = useWatch({ control, name: `components.${index}` });
 
-  const subtotal = data.length * data.height || 0;
+  const subtotal = useMemo(() => {
+    const { length = 0, height = 0 } = data;
+    return length * height;
+  }, [data]);
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
