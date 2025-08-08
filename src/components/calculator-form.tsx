@@ -79,7 +79,6 @@ export function CalculatorForm() {
         { name: 'Poteaux', length: 0.3, width: 0.3, height: 3, quantity: 4 },
         { name: 'Poutres', length: 5, width: 0.2, height: 0.3, quantity: 2 },
         { name: 'Chainage', length: 20, width: 0.15, height: 0.2, quantity: 1 },
-        { name: 'Enduit', length: 40, width: 0.02, height: 3, quantity: 1 },
         { name: 'Raidisseur', length: 0.15, width: 0.15, height: 3, quantity: 8 },
       ],
       dosage: 350,
