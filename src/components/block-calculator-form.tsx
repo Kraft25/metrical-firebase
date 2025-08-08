@@ -82,7 +82,9 @@ export function BlockCalculatorForm() {
         const blockSurfaceWithJoint = (blockLength + jointThickness) * (blockHeight + jointThickness);
         const wallSurface = wallLength * wallHeight;
         
-        const blocksNeeded = Math.ceil(wallSurface / blockSurfaceWithJoint);
+        const blocksNeededRaw = Math.ceil(wallSurface / blockSurfaceWithJoint);
+        const blocksNeeded = isNaN(blocksNeededRaw) ? 0 : blocksNeededRaw;
+
         const realSurface = blocksNeeded * blockLength * blockHeight;
 
         return { blocksNeeded, realSurface };
