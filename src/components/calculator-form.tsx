@@ -48,6 +48,17 @@ const concreteDosages = {
     "400": { name: "Béton de haute résistance (400 kg/m³)", cement: 400, sand: 0.35, gravel: 0.55, water: 200 },
 };
 
+type DosageResult = {
+    dosage: string;
+    volume: number;
+    materials: {
+        cement: number;
+        sand: number;
+        gravel: number;
+        water: number;
+    };
+};
+
 type CalculationResult = {
     totalVolume: number;
     totalMaterials: {
@@ -56,16 +67,7 @@ type CalculationResult = {
         gravel: number;
         water: number;
     };
-    byDosage: {
-        dosage: string;
-        volume: number;
-        materials: {
-            cement: number;
-            sand: number;
-            gravel: number;
-            water: number;
-        };
-    }[];
+    byDosage: DosageResult[];
 } | null;
 
 
@@ -88,7 +90,7 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
   );
 };
 
-const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: number, control: Control<FormValues>, removeOuvrage: (index: number) => void }) => {
+const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { ouvrageIndex: number, control: Control<FormValues>, removeOuvrage: (index: number) => void, dosageResult: DosageResult | undefined }) => {
     const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
         control,
         name: `ouvrages.${ouvrageIndex}.components`,
@@ -99,17 +101,16 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
     const dosageName = dosageInfo ? dosageInfo.name : "Dosage non sélectionné";
 
     return (
-        <Card className="shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="shadow-lg overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between bg-muted/30 border-b">
                 <div>
-                    <CardTitle>Parc d'ouvrages: {dosageName}</CardTitle>
-                    <CardDescription>Composants pour ce type de dosage.</CardDescription>
+                    <CardTitle>Parc d'ouvrages</CardTitle>
                 </div>
                 <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeOuvrage(ouvrageIndex)}>
                     <Trash2 className="h-5 w-5"/>
                 </Button>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-4 sm:p-6">
                 <FormField
                     control={control}
                     name={`ouvrages.${ouvrageIndex}.dosage`}
@@ -118,13 +119,13 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
                         <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
                         <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
                             <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="text-base">
                                 <SelectValue placeholder="Sélectionnez un dosage" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                             {Object.entries(concreteDosages).map(([key, value]) => (
-                                <SelectItem key={key} value={key}>{value.name}</SelectItem>
+                                <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
                             ))}
                             </SelectContent>
                         </Select>
@@ -133,33 +134,44 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
                 />
 
                 {componentFields.map((componentField, componentIndex) => (
-                <div key={componentField.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="md:col-span-3"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9 text-left"/></div></FormControl> </FormItem> )}/>
+                <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="md:col-span-2"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
-                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                        <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                    </div>
+                    <Separator />
+                     <div className="grid grid-cols-2 gap-4 items-center">
+                        <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
+                        <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full sm:w-auto sm:justify-self-end">
                             <Trash2 className="h-4 w-4 sm:mr-2" />
                             <span className="hidden sm:inline">Supprimer</span>
                         </Button>
                     </div>
-                     <div className="md:col-span-1">
-                        <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
-                    </div>
                 </div>
                 ))}
-
-            </CardContent>
-             <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <Button type="button" variant="outline" onClick={() => appendComponent({ name: '', length: 0, width: 0, height: 0, quantity: 1 })}>
+                 <Button type="button" variant="outline" className="w-full" onClick={() => appendComponent({ name: '', length: 0, width: 0, height: 0, quantity: 1 })}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Ajouter un composant
                 </Button>
-            </CardFooter>
+
+            </CardContent>
+            {dosageResult && (
+                <CardFooter className="bg-muted/30 border-t p-4 sm:p-6 flex-col items-start">
+                    <h4 className="text-lg font-semibold mb-2">{dosageName}</h4>
+                    <p className="text-sm text-muted-foreground mb-3">Volume: <span className="font-bold">{dosageResult.volume.toFixed(2)} m³</span></p>
+                    <ul className="text-sm space-y-1 w-full">
+                        <li className="flex justify-between"><span>Ciment (sacs de 50kg):</span> <span className="font-bold">{dosageResult.materials.cement}</span></li>
+                        <li className="flex justify-between"><span>Sable:</span> <span className="font-bold">{dosageResult.materials.sand.toFixed(2)} m³</span></li>
+                        <li className="flex justify-between"><span>Gravier:</span> <span className="font-bold">{dosageResult.materials.gravel.toFixed(2)} m³</span></li>
+                        <li className="flex justify-between"><span>Eau:</span> <span className="font-bold">{dosageResult.materials.water.toFixed(0)} L</span></li>
+                    </ul>
+                </CardFooter>
+            )}
         </Card>
     );
 };
@@ -204,7 +216,7 @@ export function CalculatorForm() {
       let totalVolume = 0;
       const byDosage: CalculationResult['byDosage'] = [];
 
-      values.ouvrages.forEach(ouvrage => {
+      values.ouvrages.forEach((ouvrage, index) => {
           const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
           if (!dosageInfo) return;
 
@@ -219,7 +231,7 @@ export function CalculatorForm() {
           const totalGravelM3 = ouvrageVolume * dosageInfo.gravel;
           const totalWaterLiters = ouvrageVolume * dosageInfo.water;
 
-          byDosage.push({
+          byDosage[index] = {
               dosage: String(ouvrage.dosage),
               volume: ouvrageVolume,
               materials: {
@@ -228,14 +240,16 @@ export function CalculatorForm() {
                   gravel: totalGravelM3,
                   water: totalWaterLiters,
               },
-          });
+          };
       });
 
       const totalMaterials = byDosage.reduce((acc, current) => {
-          acc.cement += current.materials.cement;
-          acc.sand += current.materials.sand;
-          acc.gravel += current.materials.gravel;
-          acc.water += current.materials.water;
+          if(current) {
+            acc.cement += current.materials.cement;
+            acc.sand += current.materials.sand;
+            acc.gravel += current.materials.gravel;
+            acc.water += current.materials.water;
+          }
           return acc;
       }, { cement: 0, sand: 0, gravel: 0, water: 0 });
 
@@ -261,10 +275,11 @@ export function CalculatorForm() {
                         ouvrageIndex={ouvrageIndex}
                         control={form.control}
                         removeOuvrage={remove}
+                        dosageResult={calculationResult?.byDosage[ouvrageIndex]}
                     />
                  ))}
-                 <Button type="button" variant="secondary" className="w-full" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', length: 1, width: 1, height: 1, quantity: 1 }]})}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
+                 <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', length: 1, width: 1, height: 1, quantity: 1 }]})}>
+                    <PlusCircle className="mr-2 h-5 w-5" />
                     Ajouter un nouveau parc d'ouvrages
                  </Button>
             </div>
@@ -274,7 +289,7 @@ export function CalculatorForm() {
                     <Card className="bg-accent/10 border-accent shadow-xl sticky top-8">
                         <CardHeader>
                             <CardTitle className="text-accent-foreground text-2xl">
-                                Résultat Total
+                                Récapitulatif Total
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -295,29 +310,6 @@ export function CalculatorForm() {
                                 <div className="flex items-center gap-3"> <Droplets className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.water.toFixed(0)}</span> litres d'eau</p> </div>
                             </div>
                             
-                            <Accordion type="single" collapsible className="w-full pt-4">
-                                <AccordionItem value="item-1">
-                                    <AccordionTrigger>Détails par dosage</AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="space-y-4">
-                                            {calculationResult.byDosage.map((dosageResult, index) => (
-                                                <div key={index}>
-                                                     <p className="font-bold">{concreteDosages[dosageResult.dosage as keyof typeof concreteDosages].name}</p>
-                                                     <p className="text-sm text-muted-foreground">Volume: {dosageResult.volume.toFixed(2)} m³</p>
-                                                     <ul className="text-sm list-disc pl-5 mt-1">
-                                                        <li>Ciment: {dosageResult.materials.cement} sacs</li>
-                                                        <li>Sable: {dosageResult.materials.sand.toFixed(2)} m³</li>
-                                                        <li>Gravier: {dosageResult.materials.gravel.toFixed(2)} m³</li>
-                                                        <li>Eau: {dosageResult.materials.water.toFixed(0)} L</li>
-                                                     </ul>
-                                                     {index < calculationResult.byDosage.length - 1 && <Separator className="mt-4"/>}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-
                              <CardDescription className="pt-4 text-xs">
                                 Note: Ce sont des estimations. Prévoyez une marge de 5-10% pour les pertes.
                             </CardDescription>
