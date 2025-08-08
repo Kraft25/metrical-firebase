@@ -91,7 +91,7 @@ export function CalculatorForm() {
   
   const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-  const watchedValues = useWatch({ control: form.control });
+  const watchedDosage = useWatch({ control: form.control, name: 'dosage' });
 
   const calculateTotals = (values: FormValues) => {
     const totalVolume = values.components.reduce((acc, comp) => {
@@ -130,8 +130,13 @@ export function CalculatorForm() {
   };
   
   useEffect(() => {
-      calculateTotals(form.getValues());
-  }, [watchedValues, form]);
+    const subscription = form.watch(() => {
+        calculateTotals(form.getValues());
+    });
+    // Initial calculation
+    calculateTotals(form.getValues());
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   
 
@@ -142,16 +147,40 @@ export function CalculatorForm() {
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle>Composants de l'ouvrage</CardTitle>
+                        <CardTitle>Dosage et Composants</CardTitle>
+                        <CardDescription>Sélectionnez un dosage puis ajoutez les composants de votre ouvrage.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-4">
-                        <div className="sm:col-span-3"><FormLabel>Nom du composant</FormLabel></div>
-                        <div className="sm:col-span-2"><FormLabel>Longueur (m)</FormLabel></div>
-                        <div className="sm:col-span-2"><FormLabel>Largeur (m)</FormLabel></div>
-                        <div className="sm:col-span-2"><FormLabel>Hauteur (m)</FormLabel></div>
-                        <div className="sm:col-span-1"><FormLabel>Quantité</FormLabel></div>
+                        <FormField
+                            control={form.control}
+                            name="dosage"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Sélectionnez un dosage" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {Object.entries(concreteDosages).map(([key, value]) => (
+                                        <SelectItem key={key} value={key}>{value.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                            />
+
+                        <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-4 pt-4 border-t">
+                            <div className="sm:col-span-3"><FormLabel>Nom du composant</FormLabel></div>
+                            <div className="sm:col-span-2"><FormLabel>Longueur (m)</FormLabel></div>
+                            <div className="sm:col-span-2"><FormLabel>Largeur (m)</FormLabel></div>
+                            <div className="sm:col-span-2"><FormLabel>Hauteur (m)</FormLabel></div>
+                            <div className="sm:col-span-1"><FormLabel>Quantité</FormLabel></div>
                         </div>
+
                         {fields.map((field, index) => (
                         <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start bg-secondary/30 p-4 rounded-lg border">
                             <FormField
@@ -256,43 +285,14 @@ export function CalculatorForm() {
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Ajouter un composant
                         </Button>
-                        <Button type="submit">Effectuer</Button>
+                        <Button type="submit">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>
 
             <div className="lg:col-span-1 space-y-6">
-                 <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle>Dosage du Béton</CardTitle>
-                        <CardDescription>Selon les normes de chantier ivoiriennes</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <FormField
-                            control={form.control}
-                            name="dosage"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Type d'ouvrage</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionnez un dosage" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {Object.entries(concreteDosages).map(([key, value]) => (
-                                        <SelectItem key={key} value={key}>{value.name}</SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                                </FormItem>
-                            )}
-                            />
-                    </CardContent>
-                 </Card>
                  {calculationResult && (
-                    <Card className="bg-accent/10 border-accent shadow-xl">
+                    <Card className="bg-accent/10 border-accent shadow-xl sticky top-8">
                         <CardHeader>
                             <CardTitle className="text-accent-foreground text-2xl">
                             Résultat Total
