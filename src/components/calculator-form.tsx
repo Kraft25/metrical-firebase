@@ -108,7 +108,7 @@ export function CalculatorForm() {
     }
     
     const totalCementKg = totalVolume * dosageInfo.cement;
-    const cementBags = Math.ceil(totalCementKg / 35);
+    const cementBags = Math.ceil(totalCementKg / 50);
     const totalSandM3 = totalVolume * dosageInfo.sand;
     const totalGravelM3 = totalVolume * dosageInfo.gravel;
     const totalWaterLiters = totalVolume * dosageInfo.water;
@@ -128,20 +128,12 @@ export function CalculatorForm() {
     calculateTotals(values);
   };
   
-  const watchedDosage = useWatch({ control: form.control, name: "dosage" });
+  const watchedValues = useWatch({ control: form.control });
 
   useEffect(() => {
     calculateTotals(form.getValues());
-  }, [watchedDosage, form]);
+  }, [watchedValues, form]);
 
-  useEffect(() => {
-    const subscription = form.watch((values) => {
-        calculateTotals(values as FormValues);
-    });
-    // Initial calculation
-    calculateTotals(form.getValues());
-    return () => subscription.unsubscribe();
-  }, [form.formState.isSubmitted]);
   
 
   return (
@@ -317,7 +309,7 @@ export function CalculatorForm() {
                                 <h4 className="font-semibold text-lg">Quantités de matériaux :</h4>
                                 <div className="flex items-center gap-3">
                                     <BrickWall className="h-5 w-5 text-primary" />
-                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.cement}</span> sacs de ciment (35kg)</p>
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.cement}</span> sacs de ciment (50kg)</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Sprout className="h-5 w-5 text-primary" />
