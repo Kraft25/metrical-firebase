@@ -131,6 +131,7 @@ export function CalculatorForm() {
   useEffect(() => {
     // Initial calculation on mount
     calculateTotals(form.getValues());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
