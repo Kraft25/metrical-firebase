@@ -127,12 +127,13 @@ export function CalculatorForm() {
   const onSubmit = (values: FormValues) => {
     calculateTotals(values);
   };
-  
+
+  const dosage = useWatch({ control: form.control, name: 'dosage' });
+
   useEffect(() => {
-    // Initial calculation on mount
     calculateTotals(form.getValues());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dosage, form]);
+  
 
   return (
     <Form {...form}>
