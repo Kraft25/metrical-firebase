@@ -40,7 +40,7 @@ const formSchema = z.object({
     return true;
 }, {
     message: "Les dimensions personnalisées doivent être positives.",
-    path: ['blockLength'],
+    path: ['blockLength'], // You can also apply it to blockHeight or make it a global error
 });
 
 
