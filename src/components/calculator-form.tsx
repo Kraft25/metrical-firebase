@@ -129,20 +129,19 @@ export function CalculatorForm() {
   };
   
   const watchedDosage = useWatch({ control: form.control, name: "dosage" });
-  const watchedComponents = useWatch({ control: form.control, name: "components" });
 
   useEffect(() => {
     calculateTotals(form.getValues());
-  }, [watchedDosage, form.getValues]);
+  }, [watchedDosage, form]);
 
   useEffect(() => {
     const subscription = form.watch((values) => {
-      calculateTotals(values as FormValues);
+        calculateTotals(values as FormValues);
     });
     // Initial calculation
     calculateTotals(form.getValues());
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form.formState.isSubmitted]);
   
 
   return (
