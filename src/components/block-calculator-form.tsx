@@ -69,7 +69,7 @@ export function BlockCalculatorForm() {
           <CardContent className="space-y-6">
             <div>
                 <h3 className="font-semibold text-lg text-foreground">Dimensions du Mur</h3>
-                <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² et 20X20X40.</p>
+                <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² et 20*20*40 cm.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField
