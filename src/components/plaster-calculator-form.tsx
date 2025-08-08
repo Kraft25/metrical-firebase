@@ -87,10 +87,9 @@ export function PlasterCalculatorForm() {
         name: 'components',
     });
     
-    const watchedForm = useWatch({ control: form.control });
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const calculateTotals = (values: FormValues) => {
+    const onSubmit = (values: FormValues) => {
         if (!values.components || !values.dosage || !values.thickness) {
             setCalculationResult(null);
             return;
@@ -120,13 +119,13 @@ export function PlasterCalculatorForm() {
     };
 
     useEffect(() => {
-        calculateTotals(watchedForm as FormValues);
-    }, [watchedForm]);
+        onSubmit(form.getValues());
+    }, []);
 
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -207,16 +206,17 @@ export function PlasterCalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4">
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full h-11"
+                            className="w-full sm:w-auto h-11"
                             onClick={() => append({ name: '', length: 0, height: 0 })}
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter une surface
                         </Button>
+                        <Button type="submit" className="w-full sm:w-auto h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>

@@ -53,10 +53,9 @@ export function WaterproofingCalculatorForm() {
         name: 'components',
     });
     
-    const watchedForm = useWatch({ control: form.control });
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const calculateTotals = (values: FormValues) => {
+    const onSubmit = (values: FormValues) => {
         if (!values.components || !values.consumption || !values.layers) {
             setCalculationResult(null);
             return;
@@ -75,13 +74,13 @@ export function WaterproofingCalculatorForm() {
     };
 
     useEffect(() => {
-        calculateTotals(watchedForm as FormValues);
-    }, [watchedForm]);
+        onSubmit(form.getValues());
+    }, []);
 
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -133,18 +132,18 @@ export function WaterproofingCalculatorForm() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
-                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                             <FormField
                                 control={form.control}
                                 name={`components.${index}.name`}
-                                render={({ field }) => ( <FormItem> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
+                                render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
                              <FormField
                                 control={form.control}
                                 name={`components.${index}.area`}
                                 render={({ field }) => ( <FormItem> <FormLabel>Surface (m²)</FormLabel> <FormControl><div className="relative"><AreaChart className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
-                            <div className="col-span-1 sm:col-span-2 flex justify-end">
+                            <div className="col-span-1 sm:col-span-3 flex justify-end">
                                 <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto h-11">
                                     <Trash2 className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Supprimer</span>
@@ -153,16 +152,17 @@ export function WaterproofingCalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4">
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full h-11"
+                            className="w-full sm:w-auto h-11"
                             onClick={() => append({ name: '', area: 0 })}
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter une surface
                         </Button>
+                        <Button type="submit" className="w-full sm:w-auto h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>

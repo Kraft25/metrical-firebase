@@ -45,7 +45,7 @@ const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) =
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
       <FormLabel className="text-muted-foreground">Surface</FormLabel>
-      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
+      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-11 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(2)} m²
       </div>
     </div>
@@ -107,8 +107,8 @@ export function BlockCalculatorForm() {
                                     <FormLabel>Nom du composant</FormLabel>
                                     <FormControl>
                                         <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                        <Input {...field} placeholder="Ex: Mur Est" className="pl-9 text-left"/>
+                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                        <Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/>
                                         </div>
                                     </FormControl>
                                     </FormItem>
@@ -123,8 +123,8 @@ export function BlockCalculatorForm() {
                                         <FormLabel>Longueur (m)</FormLabel>
                                         <FormControl>
                                             <div className="relative">
-                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
+                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/>
                                             </div>
                                         </FormControl>
                                         </FormItem>
@@ -138,19 +138,17 @@ export function BlockCalculatorForm() {
                                         <FormLabel>Hauteur (m)</FormLabel>
                                         <FormControl>
                                             <div className="relative">
-                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/>
-                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
+                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/>
+                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/>
                                             </div>
                                         </FormControl>
                                         </FormItem>
                                     )}
                                 />
                             </div>
-                             <div className="grid grid-cols-2 gap-4 items-end">
-                                <div>
-                                    <MemoizedSubTotal control={form.control} index={index} />
-                                </div>
-                                <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full">
+                             <div className="grid grid-cols-2 gap-4 items-center">
+                                <MemoizedSubTotal control={form.control} index={index} />
+                                <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
                                     <Trash2 className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Supprimer</span>
                                 </Button>
@@ -162,12 +160,13 @@ export function BlockCalculatorForm() {
                         <Button
                             type="button"
                             variant="outline"
+                            className="w-full sm:w-auto h-11"
                             onClick={() => append({ name: '', length: 0, height: 0 })}
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter un composant
                         </Button>
-                         <Button type="submit">Effectuer le Calcul</Button>
+                         <Button type="submit" className="h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -178,7 +177,7 @@ export function BlockCalculatorForm() {
                         <CardTitle>Référence de Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² (pour des parpaings de 20*20*40 cm).</p>
+                        <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² (pour des parpaings de 20x20x50 cm).</p>
                     </CardContent>
                 </Card>
                  {calculationResult && (
