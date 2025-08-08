@@ -80,7 +80,7 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
-      <FormLabel className="hidden sm:inline-block">Sous-Total</FormLabel>
+      <FormLabel className="text-muted-foreground hidden sm:inline-block">Sous-Total</FormLabel>
       <div className="flex items-center justify-end sm:justify-center font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(3)} m³
       </div>
@@ -141,18 +141,28 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
                 </div>
 
                 {componentFields.map((componentField, componentIndex) => (
-                <div key={componentField.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start bg-secondary/30 p-4 rounded-lg border">
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                <div key={componentField.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end bg-secondary/30 p-4 rounded-lg border">
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9 text-left"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem className="sm:col-span-1"> <FormLabel className="sm:hidden">Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
                     
-                    <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-1 gap-2">
-                        <div className="sm:hidden col-span-1"> <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
-                        <div className="flex flex-col space-y-2 h-full justify-between"> <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel> <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full"> <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Supprimer</span> </Button> </div>
+                    <div className="grid grid-cols-2 sm:col-span-2 gap-4">
+                        <div className="flex flex-col space-y-2 h-full justify-between">
+                            <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel>
+                            <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full">
+                                <Trash2 className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Supprimer</span>
+                            </Button>
+                        </div>
+                        <div className="hidden sm:flex flex-col space-y-2 h-full justify-between">
+                             <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> 
+                        </div>
                     </div>
-                    <div className="hidden sm:block sm:col-span-2 sm:col-start-11"> <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
+                    <div className="sm:hidden col-span-2">
+                        <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
+                    </div>
                 </div>
                 ))}
 
