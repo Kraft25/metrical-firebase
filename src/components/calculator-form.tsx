@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, BrickWall, Trash } from 'lucide-react';
+import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, BrickWall } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Separator } from './ui/separator';
@@ -70,7 +70,7 @@ type CalculationResult = {
 } | null;
 
 
-const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: any, ouvrageIndex: number, componentIndex: number }) => {
+const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: Control<FormValues>, ouvrageIndex: number, componentIndex: number }) => {
   const data = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}` });
 
   const subtotal = (data.length || 0) * (data.width || 0) * (data.height || 0) * (data.quantity || 1);
@@ -83,6 +83,85 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
       </div>
     </div>
   );
+};
+
+const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: number, control: Control<FormValues>, removeOuvrage: (index: number) => void }) => {
+    const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
+        control,
+        name: `ouvrages.${ouvrageIndex}.components`,
+    });
+    
+    const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
+    const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
+    const dosageName = dosageInfo ? dosageInfo.name : "Dosage non sélectionné";
+
+    return (
+        <Card className="shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Parc d'ouvrages: {dosageName}</CardTitle>
+                    <CardDescription>Composants pour ce type de dosage.</CardDescription>
+                </div>
+                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeOuvrage(ouvrageIndex)}>
+                    <Trash2 className="h-5 w-5"/>
+                </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <FormField
+                    control={control}
+                    name={`ouvrages.${ouvrageIndex}.dosage`}
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionnez un dosage" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {Object.entries(concreteDosages).map(([key, value]) => (
+                                <SelectItem key={key} value={key}>{value.name}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        </FormItem>
+                    )}
+                />
+
+                <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-4 pt-4 border-t">
+                    <div className="sm:col-span-3"><FormLabel>Nom</FormLabel></div>
+                    <div className="sm:col-span-2"><FormLabel>Long. (m)</FormLabel></div>
+                    <div className="sm:col-span-2"><FormLabel>Larg. (m)</FormLabel></div>
+                    <div className="sm:col-span-2"><FormLabel>Haut. (m)</FormLabel></div>
+                    <div className="sm:col-span-1"><FormLabel>Qté</FormLabel></div>
+                </div>
+
+                {componentFields.map((componentField, componentIndex) => (
+                <div key={componentField.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start bg-secondary/30 p-4 rounded-lg border">
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform -rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem className="sm:col-span-1"> <FormLabel className="sm:hidden">Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                    
+                    <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-1 gap-2">
+                        <div className="sm:hidden col-span-1"> <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
+                        <div className="flex flex-col space-y-2 h-full justify-between"> <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel> <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full"> <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Supprimer</span> </Button> </div>
+                    </div>
+                    <div className="hidden sm:block sm:col-span-2 sm:col-start-11"> <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
+                </div>
+                ))}
+
+            </CardContent>
+             <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <Button type="button" variant="outline" onClick={() => appendComponent({ name: '', length: 0, width: 0, height: 0, quantity: 1 })}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Ajouter un composant
+                </Button>
+            </CardFooter>
+        </Card>
+    );
 };
 
 export function CalculatorForm() {
@@ -113,150 +192,73 @@ export function CalculatorForm() {
   });
   
   const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-
-  const calculateTotals = (values: FormValues) => {
-    let totalVolume = 0;
-    const byDosage: CalculationResult['byDosage'] = [];
-
-    values.ouvrages.forEach(ouvrage => {
-        const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
-        if (!dosageInfo) return;
-
-        const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
-            return acc + (comp.length * comp.width * comp.height * comp.quantity);
-        }, 0);
-
-        totalVolume += ouvrageVolume;
-
-        const cementBags = Math.ceil((ouvrageVolume * dosageInfo.cement) / 50);
-        const totalSandM3 = ouvrageVolume * dosageInfo.sand;
-        const totalGravelM3 = ouvrageVolume * dosageInfo.gravel;
-        const totalWaterLiters = ouvrageVolume * dosageInfo.water;
-
-        byDosage.push({
-            dosage: String(ouvrage.dosage),
-            volume: ouvrageVolume,
-            materials: {
-                cement: cementBags,
-                sand: totalSandM3,
-                gravel: totalGravelM3,
-                water: totalWaterLiters,
-            },
-        });
-    });
-
-    const totalMaterials = byDosage.reduce((acc, current) => {
-        acc.cement += current.materials.cement;
-        acc.sand += current.materials.sand;
-        acc.gravel += current.materials.gravel;
-        acc.water += current.materials.water;
-        return acc;
-    }, { cement: 0, sand: 0, gravel: 0, water: 0 });
-
-    setCalculationResult({
-        totalVolume,
-        totalMaterials,
-        byDosage,
-    });
-  }
-
-  const onSubmit = (values: FormValues) => {
-    calculateTotals(values);
-  };
   
+  const watchedForm = useWatch({ control: form.control });
+
   useEffect(() => {
-    const subscription = form.watch(() => {
-        onSubmit(form.getValues());
-    });
-    // Initial calculation
-    onSubmit(form.getValues());
-    return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form]);
+    const calculateTotals = (values: FormValues) => {
+      let totalVolume = 0;
+      const byDosage: CalculationResult['byDosage'] = [];
+
+      values.ouvrages.forEach(ouvrage => {
+          const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
+          if (!dosageInfo) return;
+
+          const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
+              return acc + (comp.length * comp.width * comp.height * comp.quantity);
+          }, 0);
+
+          totalVolume += ouvrageVolume;
+
+          const cementBags = Math.ceil((ouvrageVolume * dosageInfo.cement) / 50);
+          const totalSandM3 = ouvrageVolume * dosageInfo.sand;
+          const totalGravelM3 = ouvrageVolume * dosageInfo.gravel;
+          const totalWaterLiters = ouvrageVolume * dosageInfo.water;
+
+          byDosage.push({
+              dosage: String(ouvrage.dosage),
+              volume: ouvrageVolume,
+              materials: {
+                  cement: cementBags,
+                  sand: totalSandM3,
+                  gravel: totalGravelM3,
+                  water: totalWaterLiters,
+              },
+          });
+      });
+
+      const totalMaterials = byDosage.reduce((acc, current) => {
+          acc.cement += current.materials.cement;
+          acc.sand += current.materials.sand;
+          acc.gravel += current.materials.gravel;
+          acc.water += current.materials.water;
+          return acc;
+      }, { cement: 0, sand: 0, gravel: 0, water: 0 });
+
+      setCalculationResult({
+          totalVolume,
+          totalMaterials,
+          byDosage,
+      });
+    }
+    
+    calculateTotals(watchedForm as FormValues);
+  }, [watchedForm]);
+
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
-                 {fields.map((ouvrageField, ouvrageIndex) => {
-                    const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
-                        control: form.control,
-                        name: `ouvrages.${ouvrageIndex}.components`,
-                    });
-                    
-                    const watchedOuvrage = useWatch({ control: form.control, name: `ouvrages.${ouvrageIndex}` });
-                    const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
-                    const dosageName = dosageInfo ? dosageInfo.name : "Dosage non sélectionné";
-
-                    return (
-                        <Card key={ouvrageField.id} className="shadow-lg">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <div>
-                                    <CardTitle>Parc d'ouvrages: {dosageName}</CardTitle>
-                                    <CardDescription>Composants pour ce type de dosage.</CardDescription>
-                                </div>
-                                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => remove(ouvrageIndex)}>
-                                    <Trash2 className="h-5 w-5"/>
-                                </Button>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <FormField
-                                    control={form.control}
-                                    name={`ouvrages.${ouvrageIndex}.dosage`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
-                                        <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
-                                            <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Sélectionnez un dosage" />
-                                            </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                            {Object.entries(concreteDosages).map(([key, value]) => (
-                                                <SelectItem key={key} value={key}>{value.name}</SelectItem>
-                                            ))}
-                                            </SelectContent>
-                                        </Select>
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-4 pt-4 border-t">
-                                    <div className="sm:col-span-3"><FormLabel>Nom</FormLabel></div>
-                                    <div className="sm:col-span-2"><FormLabel>Long. (m)</FormLabel></div>
-                                    <div className="sm:col-span-2"><FormLabel>Larg. (m)</FormLabel></div>
-                                    <div className="sm:col-span-2"><FormLabel>Haut. (m)</FormLabel></div>
-                                    <div className="sm:col-span-1"><FormLabel>Qté</FormLabel></div>
-                                </div>
-
-                                {componentFields.map((componentField, componentIndex) => (
-                                <div key={componentField.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start bg-secondary/30 p-4 rounded-lg border">
-                                    <FormField control={form.control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                                    <FormField control={form.control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                                    <FormField control={form.control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                                    <FormField control={form.control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform -rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                                    <FormField control={form.control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem className="sm:col-span-1"> <FormLabel className="sm:hidden">Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                                    
-                                    <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-1 gap-2">
-                                        <div className="sm:hidden col-span-1"> <MemoizedSubTotal control={form.control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
-                                        <div className="flex flex-col space-y-2 h-full justify-between"> <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel> <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full"> <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Supprimer</span> </Button> </div>
-                                    </div>
-                                    <div className="hidden sm:block sm:col-span-2 sm:col-start-11"> <MemoizedSubTotal control={form.control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> </div>
-                                </div>
-                                ))}
-
-                            </CardContent>
-                             <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                                <Button type="button" variant="outline" onClick={() => appendComponent({ name: '', length: 0, width: 0, height: 0, quantity: 1 })}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Ajouter un composant
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    )
-                 })}
+                 {fields.map((ouvrageField, ouvrageIndex) => (
+                    <OuvrageCard
+                        key={ouvrageField.id}
+                        ouvrageIndex={ouvrageIndex}
+                        control={form.control}
+                        removeOuvrage={remove}
+                    />
+                 ))}
                  <Button type="button" variant="secondary" className="w-full" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', length: 1, width: 1, height: 1, quantity: 1 }]})}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Ajouter un nouveau parc d'ouvrages
