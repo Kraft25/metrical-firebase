@@ -44,8 +44,8 @@ const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) =
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
-      <FormLabel className="text-muted-foreground hidden sm:inline-block">Surface</FormLabel>
-      <div className="flex items-center justify-end sm:justify-center font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
+      <FormLabel className="text-muted-foreground">Surface</FormLabel>
+      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(2)} m²
       </div>
     </div>
@@ -90,81 +90,70 @@ export function BlockCalculatorForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Composants du Mur</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                         <div className="hidden sm:grid sm:grid-cols-10 gap-4 text-sm font-medium text-muted-foreground px-4">
-                            <div className="sm:col-span-4"><FormLabel>Nom du composant</FormLabel></div>
-                            <div className="sm:col-span-2"><FormLabel>Longueur (m)</FormLabel></div>
-                            <div className="sm:col-span-2"><FormLabel>Hauteur (m)</FormLabel></div>
-                        </div>
-
                         {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-1 sm:grid-cols-10 gap-4 items-end bg-secondary/30 p-4 rounded-lg border">
+                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
                             <FormField
-                            control={form.control}
-                            name={`components.${index}.name`}
-                            render={({ field }) => (
-                                <FormItem className="sm:col-span-4">
-                                <FormLabel className="sm:hidden">Nom du composant</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                    <Input {...field} placeholder="Ex: Mur Est" className="pl-9 text-left"/>
-                                    </div>
-                                </FormControl>
-                                </FormItem>
-                            )}
+                                control={form.control}
+                                name={`components.${index}.name`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Nom du composant</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                        <Input {...field} placeholder="Ex: Mur Est" className="pl-9 text-left"/>
+                                        </div>
+                                    </FormControl>
+                                    </FormItem>
+                                )}
                             />
-                            <FormField
-                            control={form.control}
-                            name={`components.${index}.length`}
-                            render={({ field }) => (
-                                <FormItem className="sm:col-span-2">
-                                <FormLabel className="sm:hidden">Longueur (m)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
-                                    </div>
-                                </FormControl>
-                                </FormItem>
-                            )}
-                            />
-                            <FormField
-                            control={form.control}
-                            name={`components.${index}.height`}
-                            render={({ field }) => (
-                                <FormItem className="sm:col-span-2">
-                                <FormLabel className="sm:hidden">Hauteur (m)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
-                                    </div>
-                                </FormControl>
-                                </FormItem>
-                            )}
-                            />
-                            
-                            <div className="grid grid-cols-2 sm:col-span-2 gap-4">
-                               <div className="flex flex-col space-y-2 h-full justify-between">
-                                    <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel>
-                                    <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full">
-                                        <Trash2 className="h-4 w-4 sm:mr-2" />
-                                        <span className="hidden sm:inline">Supprimer</span>
-                                    </Button>
-                                </div>
-                                <div className="hidden sm:flex flex-col space-y-2 h-full justify-between">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                <FormField
+                                    control={form.control}
+                                    name={`components.${index}.length`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Longueur (m)</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
+                                            </div>
+                                        </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`components.${index}.height`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Hauteur (m)</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                            <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/>
+                                            <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/>
+                                            </div>
+                                        </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                             <div className="grid grid-cols-2 gap-4 items-end">
+                                <div>
                                     <MemoizedSubTotal control={form.control} index={index} />
                                 </div>
-                            </div>
-                            <div className="sm:hidden col-span-2">
-                                <MemoizedSubTotal control={form.control} index={index} />
+                                <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full">
+                                    <Trash2 className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Supprimer</span>
+                                </Button>
                             </div>
                         </div>
                         ))}
@@ -178,13 +167,13 @@ export function BlockCalculatorForm() {
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter un composant
                         </Button>
-                         <Button type="submit">Effectuer</Button>
+                         <Button type="submit">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>
             
             <div className="lg:col-span-1 space-y-6">
-                <Card className="shadow-lg">
+                <Card className="shadow-lg sticky top-8">
                     <CardHeader>
                         <CardTitle>Référence de Calcul</CardTitle>
                     </CardHeader>
@@ -193,7 +182,7 @@ export function BlockCalculatorForm() {
                     </CardContent>
                 </Card>
                  {calculationResult && (
-                    <Card className="bg-accent/10 border-accent shadow-xl">
+                    <Card className="bg-accent/10 border-accent shadow-xl sticky top-48">
                     <CardHeader>
                         <CardTitle className="text-accent-foreground text-2xl">
                         Résultat du Calcul

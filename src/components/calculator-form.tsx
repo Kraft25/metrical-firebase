@@ -80,8 +80,8 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
-      <FormLabel className="text-muted-foreground hidden sm:inline-block">Sous-Total</FormLabel>
-      <div className="flex items-center justify-end sm:justify-center font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
+      <FormLabel className="text-muted-foreground">Sous-Total</FormLabel>
+      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(3)} m³
       </div>
     </div>
@@ -132,35 +132,22 @@ const OuvrageCard = ({ ouvrageIndex, control, removeOuvrage }: { ouvrageIndex: n
                     )}
                 />
 
-                <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-muted-foreground px-4 pt-4 border-t">
-                    <div className="sm:col-span-3"><FormLabel>Nom</FormLabel></div>
-                    <div className="sm:col-span-2"><FormLabel>Long. (m)</FormLabel></div>
-                    <div className="sm:col-span-2"><FormLabel>Larg. (m)</FormLabel></div>
-                    <div className="sm:col-span-2"><FormLabel>Haut. (m)</FormLabel></div>
-                    <div className="sm:col-span-1"><FormLabel>Qté</FormLabel></div>
-                </div>
-
                 {componentFields.map((componentField, componentIndex) => (
-                <div key={componentField.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end bg-secondary/30 p-4 rounded-lg border">
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="sm:col-span-3"> <FormLabel className="sm:hidden">Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9 text-left"/></div></FormControl> </FormItem> )}/>
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel className="sm:hidden">Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem className="sm:col-span-1"> <FormLabel className="sm:hidden">Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
-                    
-                    <div className="grid grid-cols-2 sm:col-span-2 gap-4">
-                        <div className="flex flex-col space-y-2 h-full justify-between">
-                            <FormLabel className="text-destructive hidden sm:inline-block">Action</FormLabel>
-                            <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full">
-                                <Trash2 className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Supprimer</span>
-                            </Button>
-                        </div>
-                        <div className="hidden sm:flex flex-col space-y-2 h-full justify-between">
-                             <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} /> 
-                        </div>
+                <div key={componentField.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="md:col-span-3"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation" className="pl-9 text-left"/></div></FormControl> </FormItem> )}/>
                     </div>
-                    <div className="sm:hidden col-span-2">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-9"/></div></FormControl> </FormItem> )}/>
+                        <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full">
+                            <Trash2 className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Supprimer</span>
+                        </Button>
+                    </div>
+                     <div className="md:col-span-1">
                         <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
                     </div>
                 </div>
