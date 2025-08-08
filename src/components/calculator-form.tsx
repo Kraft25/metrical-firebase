@@ -64,6 +64,12 @@ export function CalculatorForm() {
       components: [
         { name: 'Mur en béton', length: 10, width: 0.2, height: 2.5, quantity: 2 },
         { name: 'Dalle de sol', length: 5, width: 4, height: 0.15, quantity: 1 },
+        { name: 'Poteau', length: 0.3, width: 0.3, height: 3, quantity: 4 },
+        { name: 'Poutre', length: 5, width: 0.2, height: 0.3, quantity: 2 },
+        { name: 'Chaînage', length: 12, width: 0.15, height: 0.15, quantity: 1 },
+        { name: 'Étanchéité', length: 10, width: 5, height: 0.005, quantity: 1 },
+        { name: 'Enduit', length: 10, width: 2.5, height: 0.02, quantity: 2 },
+        { name: 'Raidisseur', length: 0.15, width: 0.15, height: 3, quantity: 6 },
       ]
     },
   });
