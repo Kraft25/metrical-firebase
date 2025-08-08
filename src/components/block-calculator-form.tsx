@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -17,38 +17,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Ruler, Ungroup } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
-const blockSizes = {
-  "15x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 15 (15x20x40cm)" },
-  "12x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 12 (12x20x40cm)" },
-  "10x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 10 (10x20x40cm)" },
-  "20x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 20 (20x20x40cm)" },
-  "custom": { length: 0, height: 0, name: "Personnalisé" },
-};
 
 const formSchema = z.object({
   wallLength: z.coerce.number().positive("La longueur du mur doit être positive."),
   wallHeight: z.coerce.number().positive("La hauteur du mur doit être positive."),
-  blockSize: z.string().min(1, "Veuillez sélectionner une taille de parpaing."),
-  blockLength: z.coerce.number(),
-  blockHeight: z.coerce.number(),
-  jointThickness: z.coerce.number().min(0, "L'épaisseur ne peut être négative."),
-}).refine(data => {
-    if (data.blockSize === 'custom') {
-        return data.blockLength > 0 && data.blockHeight > 0;
-    }
-    return true;
-}, {
-    message: "Les dimensions personnalisées doivent être positives.",
-    path: ['blockLength'],
 });
-
 
 type FormValues = z.infer<typeof formSchema>;
 type CalculationResult = {
     blocksNeeded: number;
-    realSurface: number;
 } | null;
 
 export function BlockCalculatorForm() {
@@ -57,46 +34,23 @@ export function BlockCalculatorForm() {
         defaultValues: {
             wallLength: 10,
             wallHeight: 2.5,
-            blockSize: "15x20x40",
-            blockLength: 0.4,
-            blockHeight: 0.2,
-            jointThickness: 0.015,
         },
     });
 
-    const selectedBlockSize = useWatch({ control: form.control, name: 'blockSize' });
-    
-    useEffect(() => {
-        if (selectedBlockSize && selectedBlockSize !== 'custom') {
-            const { length, height } = blockSizes[selectedBlockSize as keyof typeof blockSizes];
-            form.setValue('blockLength', length);
-            form.setValue('blockHeight', height);
-        }
-    }, [selectedBlockSize, form]);
-    
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
     const onSubmit = (values: FormValues) => {
-        const { wallLength, wallHeight, blockLength, blockHeight, jointThickness } = values;
+        const { wallLength, wallHeight } = values;
 
-        if (!wallLength || !wallHeight || !blockLength || !blockHeight) {
-            setCalculationResult({ blocksNeeded: 0, realSurface: 0 });
+        if (!wallLength || !wallHeight) {
+            setCalculationResult({ blocksNeeded: 0 });
             return;
         }
         
-        const blockSurfaceWithJoint = (blockLength + jointThickness) * (blockHeight + jointThickness);
-        if (blockSurfaceWithJoint === 0) {
-            setCalculationResult({ blocksNeeded: 0, realSurface: 0 });
-            return;
-        }
         const wallSurface = wallLength * wallHeight;
-        
-        const blocksNeededRaw = Math.ceil(wallSurface / blockSurfaceWithJoint);
-        const blocksNeeded = isNaN(blocksNeededRaw) ? 0 : blocksNeededRaw;
+        const blocksNeeded = Math.ceil(wallSurface * 12.5);
 
-        const realSurface = blocksNeeded * blockLength * blockHeight;
-
-        setCalculationResult({ blocksNeeded, realSurface });
+        setCalculationResult({ blocksNeeded });
     };
 
     useEffect(() => {
@@ -112,9 +66,12 @@ export function BlockCalculatorForm() {
           <CardHeader>
             <CardTitle>Calculateur de Parpaings</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
+          <CardContent className="space-y-6">
+            <div>
                 <h3 className="font-semibold text-lg text-foreground">Dimensions du Mur</h3>
+                <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m².</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField
                     control={form.control}
                     name="wallLength"
@@ -142,74 +99,6 @@ export function BlockCalculatorForm() {
                                 <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transform rotate-90"/>
                                 <Input type="number" step="0.01" placeholder="Ex: 2.5" {...field} className="pl-9"/>
                             </div>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-            <div className="space-y-6">
-                <h3 className="font-semibold text-lg text-foreground">Dimensions du Parpaing</h3>
-                 <FormField
-                  control={form.control}
-                  name="blockSize"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Taille standard</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une taille" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(blockSizes).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>{value.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {selectedBlockSize === 'custom' && (
-                    <>
-                        <FormField
-                            control={form.control}
-                            name="blockLength"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Longueur du parpaing (m)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.01" placeholder="Ex: 0.40" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="blockHeight"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Hauteur du parpaing (m)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.01" placeholder="Ex: 0.20" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
-                 <FormField
-                    control={form.control}
-                    name="jointThickness"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Épaisseur du joint (m)</FormLabel>
-                        <FormControl>
-                            <Input type="number" step="0.001" placeholder="Ex: 0.015" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
