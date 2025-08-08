@@ -127,12 +127,22 @@ export function CalculatorForm() {
   const onSubmit = (values: FormValues) => {
     calculateTotals(values);
   };
-
-  const dosage = useWatch({ control: form.control, name: 'dosage' });
+  
+  const watchedDosage = useWatch({ control: form.control, name: "dosage" });
+  const watchedComponents = useWatch({ control: form.control, name: "components" });
 
   useEffect(() => {
     calculateTotals(form.getValues());
-  }, [dosage, form]);
+  }, [watchedDosage, form.getValues]);
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      calculateTotals(values as FormValues);
+    });
+    // Initial calculation
+    calculateTotals(form.getValues());
+    return () => subscription.unsubscribe();
+  }, [form]);
   
 
   return (
