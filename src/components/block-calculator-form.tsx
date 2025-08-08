@@ -20,9 +20,10 @@ import { Ruler, Ungroup } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const blockSizes = {
-  "20x20x50": { length: 0.5, height: 0.2, name: "Parpaing 20x20x50" },
-  "15x20x50": { length: 0.5, height: 0.2, name: "Parpaing 15x20x50" },
-  "10x20x50": { length: 0.5, height: 0.2, name: "Parpaing 10x20x50" },
+  "15x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 15 (15x20x40cm)" },
+  "12x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 12 (12x20x40cm)" },
+  "10x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 10 (10x20x40cm)" },
+  "20x20x40": { length: 0.4, height: 0.2, name: "Parpaing de 20 (20x20x40cm)" },
   "custom": { length: 0, height: 0, name: "Personnalisé" },
 };
 
@@ -52,8 +53,8 @@ export function BlockCalculatorForm() {
         defaultValues: {
             wallLength: 10,
             wallHeight: 2.5,
-            blockSize: "20x20x50",
-            blockLength: 0.5,
+            blockSize: "15x20x40",
+            blockLength: 0.4,
             blockHeight: 0.2,
             jointThickness: 0.015,
         },
@@ -173,7 +174,7 @@ export function BlockCalculatorForm() {
                                 <FormItem>
                                 <FormLabel>Longueur du parpaing (m)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" step="0.01" placeholder="Ex: 0.50" {...field} />
+                                    <Input type="number" step="0.01" placeholder="Ex: 0.40" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
