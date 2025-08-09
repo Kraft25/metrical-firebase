@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Ruler, PlusCircle, Trash2, Building, AreaChart, Layers, Sprout } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -180,11 +181,13 @@ export function PlasterCalculatorForm() {
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
                         <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
-                            <FormField
+                           <div className="flex justify-between items-center">
+                             <FormField
                                 control={form.control}
                                 name={`components.${index}.name`}
-                                render={({ field }) => ( <FormItem className="md:col-span-2"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
+                                render={({ field }) => ( <FormItem className="w-full"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
+                           </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                                 <FormField
                                     control={form.control}
@@ -197,6 +200,7 @@ export function PlasterCalculatorForm() {
                                     render={({ field }) => ( <FormItem> <FormLabel>Hauteur (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                                 />
                             </div>
+                            <Separator />
                              <div className="grid grid-cols-2 gap-4 items-center">
                                 <MemoizedSubTotal control={form.control} index={index} />
                                 <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
