@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -26,7 +25,7 @@ const wallComponentSchema = z.object({
   height: z.coerce.number().positive("La hauteur doit être positive."),
 });
 
-const formSchema = z.object({
+export const formSchema = z.object({
   blockLength: z.coerce.number().positive("La longueur du bloc est requise."),
   blockHeight: z.coerce.number().positive("La hauteur du bloc est requise."),
   blockThickness: z.coerce.number().positive("L'épaisseur du bloc est requise."),
@@ -35,7 +34,7 @@ const formSchema = z.object({
   components: z.array(wallComponentSchema)
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
 const mortarDosages = {
     "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
@@ -72,25 +71,23 @@ const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, in
   );
 };
 
+interface BlockCalculatorFormProps {
+    formData: FormValues;
+    onFormChange: (data: FormValues) => void;
+}
 
-export function BlockCalculatorForm() {
+export function BlockCalculatorForm({ formData, onFormChange }: BlockCalculatorFormProps) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            blockLength: 0.40,
-            blockHeight: 0.20,
-            blockThickness: 0.20,
-            mortarDosage: "300",
-            jointThickness: 0.015,
-            components: []
-        },
+        defaultValues: formData,
     });
-
-    useFormPersistence({
-      control: form.control,
-      name: 'metrical_blockCalculator',
-      setValue: form.setValue,
-    });
+    
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            onFormChange(value as FormValues);
+        });
+        return () => subscription.unsubscribe();
+    }, [form, onFormChange]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -299,15 +296,17 @@ export function BlockCalculatorForm() {
                         ))}
                     </CardContent>
                     <CardFooter>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="w-full h-12 text-base"
-                            onClick={() => append({ name: '', length: 0, height: 0 })}
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Ajouter un composant
-                        </Button>
+                         {fields.length === 0 ? (
+                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter un composant
+                            </Button>
+                        ) : (
+                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter un autre composant
+                            </Button>
+                        )}
                     </CardFooter>
                 </Card>
             </div>

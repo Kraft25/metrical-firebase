@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from './ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const steelDiameters: { [key: string]: { weightPerMeter: number } } = {
     '6': { weightPerMeter: 0.222 },
@@ -66,11 +66,11 @@ const ouvrageSchema = z.object({
 });
 
 
-const formSchema = z.object({
+export const formSchema = z.object({
   ouvrages: z.array(ouvrageSchema)
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 type OuvrageResult = {
     longitudinalWeight: number;
     transversalWeight: number;
@@ -283,19 +283,23 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
     );
 }
 
-export function SteelCalculatorForm() {
+interface SteelCalculatorFormProps {
+    formData: FormValues;
+    onFormChange: (data: FormValues) => void;
+}
+
+export function SteelCalculatorForm({ formData, onFormChange }: SteelCalculatorFormProps) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            ouvrages: []
-        },
+        defaultValues: formData,
     });
-
-    useFormPersistence({
-        control: form.control,
-        name: 'metrical_steelCalculator',
-        setValue: form.setValue,
-    });
+    
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            onFormChange(value as FormValues);
+        });
+        return () => subscription.unsubscribe();
+    }, [form, onFormChange]);
 
     const { control } = form;
 
@@ -313,20 +317,28 @@ export function SteelCalculatorForm() {
             <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
-                        <Accordion type="multiple" defaultValue={['ouvrage-0', 'ouvrage-1', 'ouvrage-2']} className="space-y-6">
-                            {fields.map((field, index) => (
-                                <OuvrageSteelItem 
-                                    key={field.id} 
-                                    form={form} 
-                                    index={index} 
-                                    remove={remove}
-                                    ouvrageResult={calculationResult?.ouvrageResults[index] || null}
-                                />
-                            ))}
-                        </Accordion>
+                        {fields.length > 0 ? (
+                            <Accordion type="multiple" defaultValue={['ouvrage-0']} className="space-y-6">
+                                {fields.map((field, index) => (
+                                    <OuvrageSteelItem 
+                                        key={field.id} 
+                                        form={form} 
+                                        index={index} 
+                                        remove={remove}
+                                        ouvrageResult={calculationResult?.ouvrageResults[index] || null}
+                                    />
+                                ))}
+                            </Accordion>
+                        ) : (
+                             <Card className="shadow-lg">
+                                <CardContent className="p-6 text-center">
+                                    <p className="text-muted-foreground">Aucun ouvrage. Ajoutez-en un pour commencer.</p>
+                                </CardContent>
+                            </Card>
+                        )}
                          <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: "Nouveau", type: 'poutre', shape: 'rectangulaire', length: 1, width: 0.2, height: 0.2, quantity: 1, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: 'etrier', diameter: "6", spacing: 0.25 }, coating: 0.025 })}>
                             <PlusCircle className="mr-2 h-5 w-5" />
-                            Ajouter un ouvrage
+                            {fields.length > 0 ? 'Ajouter un autre ouvrage' : 'Ajouter un ouvrage'}
                          </Button>
                     </div>
 

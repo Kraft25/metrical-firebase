@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Ruler, PlusCircle, Trash2, Building, AreaChart, Layers, Sprout } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -25,13 +25,13 @@ const wallComponentSchema = z.object({
   height: z.coerce.number().positive("La hauteur doit être positive."),
 });
 
-const formSchema = z.object({
+export const formSchema = z.object({
   thickness: z.coerce.number().positive("L'épaisseur est requise."),
   dosage: z.enum(["250", "300", "350", "400", "500"]),
   components: z.array(wallComponentSchema)
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
 const plasterDosages = {
     "250": { name: "Enduit courant (250 kg/m³)", cement: 250, sand: 1.05 },
@@ -69,22 +69,23 @@ const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, in
   );
 };
 
+interface PlasterCalculatorFormProps {
+    formData: FormValues;
+    onFormChange: (data: FormValues) => void;
+}
 
-export function PlasterCalculatorForm() {
+export function PlasterCalculatorForm({ formData, onFormChange }: PlasterCalculatorFormProps) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            thickness: 0.015,
-            dosage: "300",
-            components: []
-        },
+        defaultValues: formData,
     });
-
-    useFormPersistence({
-      control: form.control,
-      name: 'metrical_plasterCalculator',
-      setValue: form.setValue,
-    });
+    
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            onFormChange(value as FormValues);
+        });
+        return () => subscription.unsubscribe();
+    }, [form, onFormChange]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -208,15 +209,17 @@ export function PlasterCalculatorForm() {
                         ))}
                     </CardContent>
                     <CardFooter>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="w-full h-12 text-base"
-                            onClick={() => append({ name: '', length: 0, height: 0 })}
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Ajouter une surface
-                        </Button>
+                         {fields.length === 0 ? (
+                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter une surface
+                            </Button>
+                        ) : (
+                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter une autre surface
+                            </Button>
+                        )}
                     </CardFooter>
                 </Card>
             </div>

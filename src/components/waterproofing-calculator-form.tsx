@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,41 +17,42 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
-import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const surfaceComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
   area: z.coerce.number().positive("La surface doit être positive."),
 });
 
-const formSchema = z.object({
+export const formSchema = z.object({
   consumption: z.coerce.number().positive("La consommation est requise."),
   layers: z.coerce.number().int().min(1, "Minimum 1 couche."),
   components: z.array(surfaceComponentSchema)
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
 type CalculationResult = {
     totalSurface: number;
     totalProduct: number;
 } | null;
 
-export function WaterproofingCalculatorForm() {
+interface WaterproofingCalculatorFormProps {
+    formData: FormValues;
+    onFormChange: (data: FormValues) => void;
+}
+
+export function WaterproofingCalculatorForm({ formData, onFormChange }: WaterproofingCalculatorFormProps) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            consumption: 1.5, // kg/m²/couche
-            layers: 2,
-            components: []
-        },
+        defaultValues: formData,
     });
 
-    useFormPersistence({
-      control: form.control,
-      name: 'metrical_waterproofingCalculator',
-      setValue: form.setValue,
-    });
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            onFormChange(value as FormValues);
+        });
+        return () => subscription.unsubscribe();
+    }, [form, onFormChange]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -152,15 +154,17 @@ export function WaterproofingCalculatorForm() {
                         ))}
                     </CardContent>
                     <CardFooter>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            className="w-full h-12 text-base"
-                            onClick={() => append({ name: '', area: 0 })}
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Ajouter une surface
-                        </Button>
+                        {fields.length === 0 ? (
+                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', area: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter une surface
+                            </Button>
+                        ) : (
+                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', area: 0 })}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Ajouter une autre surface
+                            </Button>
+                        )}
                     </CardFooter>
                 </Card>
             </div>
