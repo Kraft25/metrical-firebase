@@ -26,7 +26,7 @@ const wallComponentSchema = z.object({
 });
 
 const formSchema = z.object({
-  mortarDosage: z.string(),
+  mortarDosage: z.enum(["250", "300", "350"]),
   jointThickness: z.coerce.number().positive("L'épaisseur est requise."),
   components: z.array(wallComponentSchema)
 });
