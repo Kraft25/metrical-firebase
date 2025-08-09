@@ -44,8 +44,8 @@ const ouvrageSchema = z.object({
     spacing: z.coerce.number().positive("Espacement requis."),
   }),
   coating: z.coerce.number().min(0).default(0.025), // Enrobage de 2.5cm par défaut
-}).refine(data => data.type === 'poteau' || data.shape !== 'circulaire', {
-    message: "Seuls les poteaux peuvent être circulaires.",
+}).refine(data => data.type === 'poutre' ? data.shape === 'rectangulaire' : true, {
+    message: "Les poutres ne peuvent être que rectangulaires.",
     path: ['shape'],
 }).refine(data => {
     if (data.shape === 'rectangulaire') {
@@ -195,7 +195,7 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                                 <FormLabel>Type d'Ouvrage</FormLabel>
                                 <Select onValueChange={(value) => {
                                     field.onChange(value);
-                                    if (value !== 'poteau') {
+                                    if (value === 'poutre') {
                                         setValue(`ouvrages.${index}.shape`, 'rectangulaire');
                                     }
                                 }} defaultValue={field.value}>
@@ -210,13 +210,13 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                         )}/>
                     </div>
                     
-                    {ouvrage.type === 'poteau' && (
+                    {ouvrage.type !== 'poutre' && (
                         <FormField
                         control={control}
                         name={`ouvrages.${index}.shape`}
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Forme du Poteau</FormLabel>
+                            <FormLabel>Forme</FormLabel>
                             <FormControl>
                                 <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
                                 <ToggleGroupItem value="rectangulaire" className="gap-2 h-9">
@@ -370,3 +370,5 @@ export function SteelCalculatorForm({ form }: SteelCalculatorFormProps) {
         </Form>
     );
 }
+
+    
