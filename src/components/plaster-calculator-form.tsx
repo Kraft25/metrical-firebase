@@ -33,11 +33,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const plasterDosages = {
-    "250": { name: "Enduit courant (250 kg/m³)", cement: 250, sand: 1050 },
-    "300": { name: "Enduit standard (300 kg/m³)", cement: 300, sand: 1000 },
-    "350": { name: "Enduit riche (350 kg/m³)", cement: 350, sand: 950 },
-    "400": { name: "Gobetis (400 kg/m³)", cement: 400, sand: 900 },
-    "500": { name: "Enduit de finition (500 kg/m³)", cement: 500, sand: 850 },
+    "250": { name: "Enduit courant (250 kg/m³)", cement: 250, sand: 1.05 },
+    "300": { name: "Enduit standard (300 kg/m³)", cement: 300, sand: 1.0 },
+    "350": { name: "Enduit riche (350 kg/m³)", cement: 350, sand: 0.95 },
+    "400": { name: "Gobetis (400 kg/m³)", cement: 400, sand: 0.9 },
+    "500": { name: "Enduit de finition (500 kg/m³)", cement: 500, sand: 0.85 },
 };
 
 type CalculationResult = {
@@ -108,7 +108,7 @@ export function PlasterCalculatorForm() {
             const totalVolume = totalSurface * values.thickness;
             const cementKg = totalVolume * dosageInfo.cement;
             const cementBags = Math.ceil(cementKg / 50);
-            const sandM3 = totalVolume * (dosageInfo.sand / 1000); // Assuming sand dosage is in L/m³
+            const sandM3 = totalVolume * dosageInfo.sand;
 
             setCalculationResult({
                 totalSurface,
