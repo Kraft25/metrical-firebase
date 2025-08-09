@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart } from 'lucide-react';
+import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -24,13 +26,27 @@ const wallComponentSchema = z.object({
 });
 
 const formSchema = z.object({
+  mortarDosage: z.string(),
+  jointThickness: z.coerce.number().positive("L'épaisseur est requise."),
   components: z.array(wallComponentSchema)
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const mortarDosages = {
+    "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
+    "300": { name: "Mortier standard (300 kg/m³)", cement: 300, sand: 1.0 },
+    "350": { name: "Mortier riche (350 kg/m³)", cement: 350, sand: 0.95 },
+};
+
 type CalculationResult = {
     blocksNeeded: number;
     totalSurface: number;
+    mortar: {
+        volume: number;
+        cementBags: number;
+        sandM3: number;
+    }
 } | null;
 
 const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) => {
@@ -56,6 +72,8 @@ export function BlockCalculatorForm() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            mortarDosage: "300",
+            jointThickness: 0.015, // 1.5 cm
             components: [
                 { name: "Mur Principal", length: 10, height: 2.5 },
                 { name: "Façade", length: 8, height: 2.5 },
@@ -74,15 +92,36 @@ export function BlockCalculatorForm() {
 
     useEffect(() => {
         const calculate = (values: FormValues) => {
+            if (!values.components || !values.mortarDosage || !values.jointThickness) {
+                setCalculationResult(null);
+                return;
+            }
+
             const totalSurface = values.components.reduce((acc, comp) => {
                 return acc + (comp.length * comp.height);
             }, 0);
             
             const blocksNeeded = Math.ceil(totalSurface * 12.5);
 
-            setCalculationResult({ blocksNeeded, totalSurface });
+            // Mortar Calculation
+            const mortarDosageInfo = mortarDosages[values.mortarDosage as keyof typeof mortarDosages];
+            const MORTAR_VOLUME_PER_M2 = 0.01; // Estimation pour parpaings de 20 avec joint de 1.5cm
+            const mortarVolume = totalSurface * MORTAR_VOLUME_PER_M2 * (values.jointThickness / 0.015);
+            const cementKg = mortarVolume * mortarDosageInfo.cement;
+            const cementBags = Math.ceil(cementKg / 50);
+            const sandM3 = mortarVolume * mortarDosageInfo.sand;
+
+            setCalculationResult({ 
+                blocksNeeded, 
+                totalSurface,
+                mortar: {
+                    volume: mortarVolume,
+                    cementBags,
+                    sandM3
+                }
+            });
         }
-        calculate(watchedForm as FormValues)
+        calculate(watchedForm as FormValues);
     }, [watchedForm]);
 
 
@@ -91,6 +130,50 @@ export function BlockCalculatorForm() {
       <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
+                 <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Paramètres du Mortier de Pose</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                         <FormField
+                            control={form.control}
+                            name="mortarDosage"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Dosage du mortier</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger className="text-base h-11">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {Object.entries(mortarDosages).map(([key, value]) => (
+                                        <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="jointThickness"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Épaisseur des joints (m)</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                    <Input {...field} type="number" step="0.001" placeholder="0.015" className="pl-10 text-base h-11"/>
+                                    </div>
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
+
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Composants du Mur</CardTitle>
@@ -204,6 +287,21 @@ export function BlockCalculatorForm() {
                                 <p className="text-muted-foreground mt-1">Parpaings nécessaires</p>
                             </div>
                         </div>
+                        
+                        <Separator />
+
+                        <h4 className="font-semibold text-lg pt-2">Mortier de pose :</h4>
+                         <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
+                                <p><span className="font-bold text-xl text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Sprout className="h-5 w-5 text-primary" />
+                                <p><span className="font-bold text-xl text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
+                            </div>
+                        </div>
+
                          <p className="text-xs text-muted-foreground pt-2">Note: Prévoyez une marge de 5-10% pour les pertes.</p>
                     </CardContent>
                     </Card>
