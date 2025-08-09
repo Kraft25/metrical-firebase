@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useMemo, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch, Control, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -70,23 +70,10 @@ const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, in
 };
 
 interface PlasterCalculatorFormProps {
-    formData: FormValues;
-    onFormChange: (data: FormValues) => void;
+    form: UseFormReturn<FormValues>;
 }
 
-export function PlasterCalculatorForm({ formData, onFormChange }: PlasterCalculatorFormProps) {
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: formData,
-    });
-    
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            onFormChange(value as FormValues);
-        });
-        return () => subscription.unsubscribe();
-    }, [form, onFormChange]);
-
+export function PlasterCalculatorForm({ form }: PlasterCalculatorFormProps) {
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: 'components',

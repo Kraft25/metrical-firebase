@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useMemo, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -37,23 +37,10 @@ type CalculationResult = {
 } | null;
 
 interface WaterproofingCalculatorFormProps {
-    formData: FormValues;
-    onFormChange: (data: FormValues) => void;
+    form: UseFormReturn<FormValues>;
 }
 
-export function WaterproofingCalculatorForm({ formData, onFormChange }: WaterproofingCalculatorFormProps) {
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: formData,
-    });
-
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            onFormChange(value as FormValues);
-        });
-        return () => subscription.unsubscribe();
-    }, [form, onFormChange]);
-
+export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFormProps) {
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: 'components',

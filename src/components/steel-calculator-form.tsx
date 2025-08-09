@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useMemo, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useMemo, useCallback } from 'react';
+import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ type CalculationResult = {
     ouvrageResults: (OuvrageResult | null)[];
 } | null;
 
-const calculateSteel = (values: FormValues | undefined) => {
+const calculateSteelFn = (values: FormValues | undefined) => {
     if (!values || !values.ouvrages) {
         return null;
     }
@@ -284,33 +284,19 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
 }
 
 interface SteelCalculatorFormProps {
-    formData: FormValues;
-    onFormChange: (data: FormValues) => void;
+    form: UseFormReturn<FormValues>;
 }
 
-export function SteelCalculatorForm({ formData, onFormChange }: SteelCalculatorFormProps) {
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: formData,
-    });
-    
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            onFormChange(value as FormValues);
-        });
-        return () => subscription.unsubscribe();
-    }, [form, onFormChange]);
-
+export function SteelCalculatorForm({ form }: SteelCalculatorFormProps) {
     const { control } = form;
-
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'ouvrages',
     });
     
     const watchedForm = useWatch({ control });
-
-    const calculationResult = useMemo(() => calculateSteel(watchedForm as FormValues), [watchedForm]);
+    const calculateSteel = useCallback(calculateSteelFn, []);
+    const calculationResult = calculateSteel(watchedForm as FormValues);
 
     return (
         <Form {...form}>

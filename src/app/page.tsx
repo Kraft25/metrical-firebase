@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,33 +37,35 @@ const DqeForm = dynamic(() => import('@/components/dqe-form').then(mod => mod.Dq
   loading: () => <LoadingComponent />,
 });
 
-const initialVolumeState: VolumeFormValues = { ouvrages: [] };
-const initialBlockState: BlockFormValues = {
-  blockLength: 0.40,
-  blockHeight: 0.20,
-  blockThickness: 0.20,
-  mortarDosage: "300",
-  jointThickness: 0.015,
-  components: []
+const defaultValues = {
+  volume: { ouvrages: [] },
+  blocks: {
+    blockLength: 0.40,
+    blockHeight: 0.20,
+    blockThickness: 0.20,
+    mortarDosage: "300",
+    jointThickness: 0.015,
+    components: []
+  },
+  plaster: {
+    thickness: 0.015,
+    dosage: "300",
+    components: []
+  },
+  waterproofing: {
+    consumption: 1.5,
+    layers: 2,
+    components: []
+  },
+  steel: { ouvrages: [] }
 };
-const initialPlasterState: PlasterFormValues = {
-  thickness: 0.015,
-  dosage: "300",
-  components: []
-};
-const initialWaterproofingState: WaterproofingFormValues = {
-  consumption: 1.5,
-  layers: 2,
-  components: []
-};
-const initialSteelState: SteelFormValues = { ouvrages: [] };
 
 export default function Home() {
-  const [volumeData, setVolumeData] = useState<VolumeFormValues>(initialVolumeState);
-  const [blockData, setBlockData] = useState<BlockFormValues>(initialBlockState);
-  const [plasterData, setPlasterData] = useState<PlasterFormValues>(initialPlasterState);
-  const [waterproofingData, setWaterproofingData] = useState<WaterproofingFormValues>(initialWaterproofingState);
-  const [steelData, setSteelData] = useState<SteelFormValues>(initialSteelState);
+  const volumeForm = useForm<VolumeFormValues>({ defaultValues: defaultValues.volume });
+  const blockForm = useForm<BlockFormValues>({ defaultValues: defaultValues.blocks });
+  const plasterForm = useForm<PlasterFormValues>({ defaultValues: defaultValues.plaster });
+  const waterproofingForm = useForm<WaterproofingFormValues>({ defaultValues: defaultValues.waterproofing });
+  const steelForm = useForm<SteelFormValues>({ defaultValues: defaultValues.steel });
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 sm:p-8 lg:p-16 bg-background">
@@ -102,19 +104,19 @@ export default function Home() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="volume" className="mt-6">
-            <CalculatorForm formData={volumeData} onFormChange={setVolumeData} />
+            <CalculatorForm form={volumeForm} />
           </TabsContent>
           <TabsContent value="blocks" className="mt-6">
-            <BlockCalculatorForm formData={blockData} onFormChange={setBlockData} />
+            <BlockCalculatorForm form={blockForm} />
           </TabsContent>
           <TabsContent value="plaster" className="mt-6">
-            <PlasterCalculatorForm formData={plasterData} onFormChange={setPlasterData} />
+            <PlasterCalculatorForm form={plasterForm} />
           </TabsContent>
            <TabsContent value="waterproofing" className="mt-6">
-            <WaterproofingCalculatorForm formData={waterproofingData} onFormChange={setWaterproofingData} />
+            <WaterproofingCalculatorForm form={waterproofingForm} />
           </TabsContent>
           <TabsContent value="steel" className="mt-6">
-            <SteelCalculatorForm formData={steelData} onFormChange={setSteelData} />
+            <SteelCalculatorForm form={steelForm} />
           </TabsContent>
           <TabsContent value="dqe" className="mt-6">
             <DqeForm />

@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, Control, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -116,13 +116,14 @@ const MemoizedSubTotal = ({ componentData }: { componentData: z.infer<typeof com
   );
 };
 
-const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedOuvrage }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null, watchedOuvrage: any }) => {
+const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null }) => {
     const { control } = form;
     const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
         control,
         name: `ouvrages.${ouvrageIndex}.components`,
     });
     
+    const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
     const dosageName = dosageInfo ? dosageInfo.name : 'Dosage non défini';
 
@@ -244,29 +245,16 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedO
 };
 
 interface CalculatorFormProps {
-    formData: FormValues;
-    onFormChange: (data: FormValues) => void;
+    form: UseFormReturn<FormValues>;
 }
 
-export function CalculatorForm({ formData, onFormChange }: CalculatorFormProps) {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: formData,
-  });
-
+export function CalculatorForm({ form }: CalculatorFormProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'ouvrages',
   });
   
   const watchedForm = useWatch({ control: form.control });
-
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-        onFormChange(value as FormValues);
-    });
-    return () => subscription.unsubscribe();
-  }, [form, onFormChange]);
 
   const calculationResult = useMemo(() => {
     const values = watchedForm as FormValues;
@@ -323,8 +311,6 @@ export function CalculatorForm({ formData, onFormChange }: CalculatorFormProps) 
     };
   }, [watchedForm]);
 
-  const watchedOuvrages = useWatch({ control: form.control, name: 'ouvrages' });
-
   return (
     <Form {...form}>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -333,8 +319,6 @@ export function CalculatorForm({ formData, onFormChange }: CalculatorFormProps) 
                {fields.length > 0 ? (
                 <Accordion type="multiple" defaultValue={['ouvrage-0']} className="space-y-6">
                     {fields.map((ouvrageField, ouvrageIndex) => {
-                        const watchedOuvrage = watchedOuvrages?.[ouvrageIndex];
-                        if (!watchedOuvrage) return null;
                         return (
                             <OuvrageItem
                                 key={ouvrageField.id}
@@ -342,7 +326,6 @@ export function CalculatorForm({ formData, onFormChange }: CalculatorFormProps) 
                                 ouvrageIndex={ouvrageIndex}
                                 removeOuvrage={remove}
                                 dosageResult={calculationResult?.byDosage[ouvrageIndex] || null}
-                                watchedOuvrage={watchedOuvrage}
                             />
                         )
                     })}
