@@ -129,7 +129,8 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
     
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
-    if (!dosageInfo) return null; // Safe early return
+    
+    if (!dosageInfo) return null; // Safe early return after all hooks are called.
 
     const dosageName = dosageInfo.name;
 
