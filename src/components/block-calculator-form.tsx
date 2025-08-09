@@ -103,12 +103,12 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
              return {
                 blocksNeeded: 0,
                 totalSurface: 0,
-                blocksPerM2: isNaN(blocksPerM2) || blocksPerM2 === Infinity ? 0 : blocksPerM2,
+                blocksPerM2: isNaN(blocksPerM2) || !isFinite(blocksPerM2) ? 0 : blocksPerM2,
                 mortar: { volume: 0, cementBags: 0, sandM3: 0 }
             };
         }
-
-        const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
+        
+        const blocksNeeded = !isNaN(blocksPerM2) ? Math.ceil(totalSurface * blocksPerM2) : 0;
         const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
         const mortarVolume = (totalSurface * blockThickness) - (blocksNeeded * blockLength * blockHeight * blockThickness);
         const cementKg = mortarVolume * mortarDosageInfo.cement;
@@ -118,7 +118,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         return { 
             blocksNeeded, 
             totalSurface,
-            blocksPerM2,
+            blocksPerM2: isNaN(blocksPerM2) || !isFinite(blocksPerM2) ? 0 : blocksPerM2,
             mortar: {
                 volume: mortarVolume,
                 cementBags,
@@ -307,7 +307,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                         <CardTitle>Aide au Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         {calculationResult && calculationResult.blocksPerM2 > 0 && !isNaN(calculationResult.blocksPerM2) ? (
+                         {calculationResult && calculationResult.blocksPerM2 > 0 ? (
                            <p className="text-sm text-muted-foreground">
                              Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
