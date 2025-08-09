@@ -46,7 +46,7 @@ const defaultBlockValues = {
     blockLength: 0.40,
     blockHeight: 0.20,
     blockThickness: 0.20,
-    mortarDosage: "300" as "250" | "300" | "350",
+    mortarDosage: "300" as const,
     jointThickness: 0.015,
 };
 
@@ -93,10 +93,9 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        const { components, mortarDosage, jointThickness = 0, blockLength, blockHeight, blockThickness } = values;
+        const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
 
-        // Basic validation to prevent calculations with invalid data
-        if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
+        if (!blockLength || !blockHeight || blockThickness || blockLength <= 0 || blockHeight <= 0) {
             return null;
         }
 
@@ -105,7 +104,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
             return null;
         }
-
+        
         const totalSurface = (components || []).reduce((acc, comp) => {
             const length = Number(comp.length) || 0;
             const height = Number(comp.height) || 0;
@@ -148,8 +147,9 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                  <Card className="shadow-lg">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
-                         <Button type="button" variant="ghost" size="icon" onClick={resetParameters} aria-label="Réinitialiser les paramètres">
-                            <RefreshCw className="h-5 w-5 text-muted-foreground" />
+                         <Button type="button" variant="outline" size="sm" onClick={resetParameters}>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Actualiser les paramètres
                         </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -219,7 +219,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Dosage mortier</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
                                     <SelectTrigger className="text-base h-11">
                                         <SelectValue />
@@ -380,3 +380,5 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
+
+    
