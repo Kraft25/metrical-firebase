@@ -93,16 +93,15 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
+        const { components, mortarDosage, jointThickness = 0, blockLength, blockHeight, blockThickness } = values;
 
-        if (!blockLength || !blockHeight || !blockThickness ) {
+        if (!blockLength || !blockHeight || !blockThickness) {
             return null;
         }
 
-        const jThickness = jointThickness || 0;
-        const blocksPerM2 = 1 / ((blockLength + jThickness) * (blockHeight + jThickness));
+        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
         
-         if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
+        if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
             return {
                 blocksNeeded: 0,
                 totalSurface: 0,
@@ -128,9 +127,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         
         const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
         
-        const totalVolumeOfWall = totalSurface * blockThickness;
-        const totalVolumeOfBlocks = blocksNeeded * blockLength * blockHeight * blockThickness;
-        const mortarVolume = totalVolumeOfWall - totalVolumeOfBlocks;
+        const mortarVolume = totalSurface * jointThickness;
         
         const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
         const cementKg = mortarVolume * mortarDosageInfo.cement;
@@ -396,5 +393,3 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
-
-    
