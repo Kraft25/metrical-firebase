@@ -114,7 +114,7 @@ export default function Home() {
         </header>
 
         <Tabs defaultValue="volume" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
             <TabsTrigger value="volume">
               <FileText className="mr-2" /> Calcul de Volume
             </TabsTrigger>
@@ -192,8 +192,8 @@ export default function Home() {
                             {errors.suggestion && <p className="text-sm text-destructive mt-1">{errors.suggestion.message}</p>}
                         </div>
                     </CardContent>
-                    <CardFooter>
-                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto ml-auto">
+                    <CardFooter className="flex-col sm:flex-row sm:justify-end">
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                             <Send className="mr-2 h-4 w-4" />
                             Publier
                         </Button>

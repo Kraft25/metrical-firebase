@@ -178,7 +178,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                           return (
                           <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
                             <div className="flex justify-between items-start gap-2">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow">
                                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                     <FormField
                                     control={control}
@@ -204,7 +204,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                     <Trash2 className="h-5 w-5" />
                                 </Button>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 items-end">
                                 {shape === 'rectangular' ? (
                                   <>
                                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
@@ -215,7 +215,9 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                 )}
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                                <MemoizedSubTotal componentData={watchedComponent} />
+                                <div className="md:col-span-5 lg:col-span-1">
+                                  <MemoizedSubTotal componentData={watchedComponent} />
+                                </div>
                             </div>
                           </div>
                         )})}
@@ -390,5 +392,3 @@ export function CalculatorForm({ form }: CalculatorFormProps) {
     </Form>
   );
 }
-
-    

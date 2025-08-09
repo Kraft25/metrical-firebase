@@ -260,7 +260,7 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
 
                     {/* Aciers Transversaux */}
                     <h4 className="font-semibold text-lg">Aciers Transversaux</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <FormField control={control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
                             <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={ouvrage.shape === 'circulaire'}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
                         )}/>
@@ -370,5 +370,3 @@ export function SteelCalculatorForm({ form }: SteelCalculatorFormProps) {
         </Form>
     );
 }
-
-    
