@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -159,6 +159,13 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
         control,
         name: `ouvrages.${index}`
     });
+
+    useEffect(() => {
+        if (ouvrage.shape === 'circulaire') {
+            setValue(`ouvrages.${index}.transversalBars.type`, 'etrier');
+        }
+    }, [ouvrage.shape, index, setValue]);
+
 
     return (
         <AccordionItem value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
