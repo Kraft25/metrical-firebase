@@ -11,16 +11,12 @@ export function AppSummary() {
       description: "Estimez le volume de béton et les matériaux (ciment, sable, gravier, eau) pour tout type d'ouvrage : fondations, poteaux, poutres, dalles, etc."
     },
     {
-      title: "Calcul de Parpaings (Maçonnerie)",
-      description: "Calculez le nombre de parpaings nécessaires pour vos murs (base 20x40cm) et estimez le mortier de pose (ciment, sable) en fonction du dosage."
+      title: "Calcul de Maçonnerie",
+      description: "Calculez le nombre de parpaings ou briques nécessaires pour vos murs et estimez le mortier de pose."
     },
     {
-      title: "Calcul d'Enduit",
-      description: "Déterminez la quantité d'enduit (ciment, sable) requise pour crépir vos surfaces, en fonction de l'épaisseur et du type d'enduit."
-    },
-    {
-      title: "Calcul d'Étanchéité",
-      description: "Évaluez la quantité de produit d'étanchéité nécessaire pour protéger vos surfaces en fonction de la consommation par couche."
+      title: "Calcul d'Enduits & Finitions",
+      description: "Déterminez la quantité d'enduit ou de produit d'étanchéité requise pour vos surfaces, en fonction de l'épaisseur et de la consommation."
     },
     {
       title: "Calcul des Aciers (Ferraillage)",

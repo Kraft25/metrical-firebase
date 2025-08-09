@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 const surfaceComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -74,9 +75,12 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
       <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
-                <Card className="shadow-lg">
+                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle>Paramètres d'Étanchéité</CardTitle>
+                        <CardTitle>Calcul d'Étanchéité</CardTitle>
+                        <CardDescription>
+                            Vous pouvez ajouter des surfaces manuelles ici, ou laisser vide pour utiliser la surface de la maçonnerie.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                          <FormField
@@ -119,7 +123,7 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
 
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle>Surfaces à Traiter</CardTitle>
+                        <CardTitle>Surfaces Manuelles (Optionnel)</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
@@ -141,27 +145,20 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
                         ))}
                     </CardContent>
                     <CardFooter>
-                        {fields.length === 0 ? (
-                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', area: 0 })}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Ajouter une surface
-                            </Button>
-                        ) : (
-                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', area: 0 })}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Ajouter une autre surface
-                            </Button>
-                        )}
+                        <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: 'Nouvelle surface', area: 0 })}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Ajouter une surface manuelle
+                        </Button>
                     </CardFooter>
                 </Card>
             </div>
             
             <div className="lg:col-span-1 space-y-6">
-                 {calculationResult && (
+                 {calculationResult ? (
                     <Card className="bg-accent/10 border-accent shadow-xl sticky top-8">
                     <CardHeader>
                         <CardTitle className="text-accent-foreground text-2xl">
-                        Résultat du Calcul
+                        Résultat (Étanchéité)
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -187,6 +184,17 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
                             Note: Prévoyez une marge de 10% pour les pertes.
                         </CardDescription>
                     </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="shadow-lg sticky top-8">
+                        <CardHeader>
+                            <CardTitle>Résultat (Étanchéité)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                           <p className="text-muted-foreground">
+                            Entrez les paramètres et ajoutez au moins une surface manuelle pour voir les résultats.
+                           </p>
+                        </CardContent>
                     </Card>
                 )}
             </div>

@@ -4,7 +4,7 @@
 import { useForm, useFormState } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 import React, { useState } from 'react';
-import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare, User } from 'lucide-react';
+import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare, User, Paintbrush } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppSummary } from '@/components/app-summary';
 import type { FormValues as VolumeFormValues } from '@/components/calculator-form';
@@ -29,10 +29,7 @@ const CalculatorForm = dynamic(() => import('@/components/calculator-form').then
 const BlockCalculatorForm = dynamic(() => import('@/components/block-calculator-form').then(mod => mod.BlockCalculatorForm), {
   loading: () => <LoadingComponent />,
 });
-const PlasterCalculatorForm = dynamic(() => import('@/components/plaster-calculator-form').then(mod => mod.PlasterCalculatorForm), {
-  loading: () => <LoadingComponent />,
-});
-const WaterproofingCalculatorForm = dynamic(() => import('@/components/waterproofing-calculator-form').then(mod => mod.WaterproofingCalculatorForm), {
+const FinishesCalculatorForm = dynamic(() => import('@/components/finishes-calculator-form').then(mod => mod.FinishesCalculatorForm), {
   loading: () => <LoadingComponent />,
 });
 const SteelCalculatorForm = dynamic(() => import('@/components/steel-calculator-form').then(mod => mod.SteelCalculatorForm), {
@@ -98,18 +95,15 @@ export default function Home() {
         </header>
 
         <Tabs defaultValue="volume" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="volume">
               <FileText className="mr-2" /> Calcul de Volume
             </TabsTrigger>
             <TabsTrigger value="blocks">
               <Ungroup className="mr-2" /> Calcul Maçonnerie
             </TabsTrigger>
-            <TabsTrigger value="plaster">
-              <Layers className="mr-2" /> Calcul d'Enduit
-            </TabsTrigger>
-            <TabsTrigger value="waterproofing">
-              <Droplets className="mr-2" /> Calcul d'Étanchéité
+            <TabsTrigger value="finishes">
+              <Paintbrush className="mr-2" /> Enduits & Finitions
             </TabsTrigger>
             <TabsTrigger value="steel">
               <GitCommitHorizontal className="mr-2" /> Calcul Aciers
@@ -124,11 +118,12 @@ export default function Home() {
           <TabsContent value="blocks" className="mt-6">
             <BlockCalculatorForm form={blockForm} />
           </TabsContent>
-          <TabsContent value="plaster" className="mt-6">
-            <PlasterCalculatorForm form={plasterForm} blockFormValues={blockForm.watch()} />
-          </TabsContent>
-           <TabsContent value="waterproofing" className="mt-6">
-            <WaterproofingCalculatorForm form={waterproofingForm} />
+          <TabsContent value="finishes" className="mt-6">
+            <FinishesCalculatorForm 
+              plasterForm={plasterForm} 
+              waterproofingForm={waterproofingForm} 
+              blockFormValues={blockForm.watch()}
+            />
           </TabsContent>
           <TabsContent value="steel" className="mt-6">
             <SteelCalculatorForm form={steelForm} />

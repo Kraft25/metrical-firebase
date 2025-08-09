@@ -100,10 +100,7 @@ export function PlasterCalculatorForm({ form, blockFormValues }: PlasterCalculat
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle>Paramètres de l'Enduit</CardTitle>
-                        <CardDescription>
-                            Le calcul se base sur la surface totale des murs définie dans l'onglet "Calcul Maçonnerie".
-                        </CardDescription>
+                        <CardTitle>Calcul d'Enduit</CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                          <FormField
@@ -144,28 +141,14 @@ export function PlasterCalculatorForm({ form, blockFormValues }: PlasterCalculat
                         />
                     </CardContent>
                 </Card>
-
-                 {totalSurfaceFromBlocks === 0 && (
-                   <Card>
-                        <CardHeader className="flex-row items-center gap-4">
-                           <Info className="h-8 w-8 text-primary" />
-                           <div>
-                            <CardTitle>Aucune surface définie</CardTitle>
-                            <CardDescription>
-                                Veuillez d'abord ajouter des composants de mur dans l'onglet "Calcul Maçonnerie" pour calculer l'enduit nécessaire.
-                            </CardDescription>
-                           </div>
-                        </CardHeader>
-                   </Card>
-                )}
             </div>
             
             <div className="lg:col-span-1 space-y-6">
-                 {calculationResult && (
+                 {calculationResult ? (
                     <Card className="bg-accent/10 border-accent shadow-xl sticky top-8">
                     <CardHeader>
                         <CardTitle className="text-accent-foreground text-2xl">
-                        Résultat du Calcul
+                        Résultat (Enduit)
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -204,6 +187,17 @@ export function PlasterCalculatorForm({ form, blockFormValues }: PlasterCalculat
                             Note: Prévoyez une marge de 10-15% pour les pertes. Les dosages sont indicatifs.
                         </CardDescription>
                     </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="shadow-lg sticky top-8">
+                        <CardHeader>
+                            <CardTitle>Résultat (Enduit)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                           <p className="text-muted-foreground">
+                            Entrez les paramètres et assurez-vous qu'une surface est définie dans "Calcul Maçonnerie" pour voir les résultats.
+                           </p>
+                        </CardContent>
                     </Card>
                 )}
             </div>
