@@ -5,6 +5,7 @@ import { WaterproofingCalculatorForm } from '@/components/waterproofing-calculat
 import { SteelCalculatorForm } from '@/components/steel-calculator-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calculator, Ungroup, Layers, Droplets, GitCommitHorizontal } from 'lucide-react';
+import { AppSummary } from '@/components/app-summary';
 
 export default function Home() {
   return (
@@ -21,6 +22,8 @@ export default function Home() {
             Calculez facilement et avec précision le métré de vos ouvrages.
           </p>
         </header>
+
+        <AppSummary />
 
         <Tabs defaultValue="volume" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
