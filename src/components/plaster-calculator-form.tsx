@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -51,7 +51,7 @@ type CalculationResult = {
     };
 } | null;
 
-const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) => {
+const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, index: number }) => {
   const data = useWatch({ control, name: `components.${index}` });
 
   const subtotal = useMemo(() => {
@@ -88,40 +88,37 @@ export function PlasterCalculatorForm() {
         name: 'components',
     });
     
-    const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-
     const watchedForm = useWatch({ control: form.control });
 
-    useEffect(() => {
-        const calculate = (values: FormValues) => {
-            if (!values.components || !values.dosage || !values.thickness) {
-                setCalculationResult(null);
-                return;
-            }
-
-            const dosageInfo = plasterDosages[values.dosage as keyof typeof plasterDosages];
-            if (!dosageInfo) return;
-
-            const totalSurface = values.components.reduce((acc, comp) => {
-                return acc + (comp.length * comp.height);
-            }, 0);
-            
-            const totalVolume = totalSurface * values.thickness;
-            const cementKg = totalVolume * dosageInfo.cement;
-            const cementBags = Math.ceil(cementKg / 50);
-            const sandM3 = totalVolume * dosageInfo.sand;
-
-            setCalculationResult({
-                totalSurface,
-                totalVolume,
-                materials: {
-                    cementKg,
-                    cementBags,
-                    sandM3,
-                }
-            });
+    const calculationResult = useMemo(() => {
+        const values = watchedForm as FormValues;
+        if (!values.components || !values.dosage || !values.thickness) {
+            return null;
         }
-        calculate(watchedForm as FormValues);
+
+        const dosageInfo = plasterDosages[values.dosage as keyof typeof plasterDosages];
+        if (!dosageInfo) return null;
+
+        const totalSurface = values.components.reduce((acc, comp) => {
+            return acc + (comp.length * comp.height);
+        }, 0);
+
+        if (totalSurface === 0) return null;
+        
+        const totalVolume = totalSurface * values.thickness;
+        const cementKg = totalVolume * dosageInfo.cement;
+        const cementBags = Math.ceil(cementKg / 50);
+        const sandM3 = totalVolume * dosageInfo.sand;
+
+        return {
+            totalSurface,
+            totalVolume,
+            materials: {
+                cementKg,
+                cementBags,
+                sandM3,
+            }
+        };
     }, [watchedForm]);
 
 
@@ -181,17 +178,17 @@ export function PlasterCalculatorForm() {
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
                         <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
-                           <div className="flex justify-between items-center">
+                           <div className="flex justify-between items-center gap-4">
                              <FormField
                                 control={form.control}
                                 name={`components.${index}.name`}
                                 render={({ field }) => ( <FormItem className="w-full"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
-                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-8 ml-2 text-destructive">
+                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-8 text-destructive">
                                 <Trash2 className="h-5 w-5" />
                             </Button>
                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                                 <FormField
                                     control={form.control}
                                     name={`components.${index}.length`}
@@ -202,9 +199,6 @@ export function PlasterCalculatorForm() {
                                     name={`components.${index}.height`}
                                     render={({ field }) => ( <FormItem> <FormLabel>Hauteur (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                                 />
-                            </div>
-                            <Separator />
-                             <div className="flex justify-end">
                                 <MemoizedSubTotal control={form.control} index={index} />
                             </div>
                         </div>
@@ -255,7 +249,7 @@ export function PlasterCalculatorForm() {
                         <div className="space-y-3 pt-4">
                             <h4 className="font-semibold text-lg">Total des matériaux :</h4>
                             <div className="flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
                                 <p><span className="font-bold text-xl text-foreground">{calculationResult.materials.cementBags}</span> sacs de ciment (50kg)</p>
                             </div>
                             <div className="flex items-center gap-3">

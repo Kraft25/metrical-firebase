@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -53,30 +53,26 @@ export function WaterproofingCalculatorForm() {
         name: 'components',
     });
     
-    const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-
     const watchedForm = useWatch({ control: form.control });
 
-    useEffect(() => {
-        const calculate = (values: FormValues) => {
-             if (!values.components || !values.consumption || !values.layers) {
-                setCalculationResult(null);
-                return;
-            }
-
-            const totalSurface = values.components.reduce((acc, comp) => {
-                return acc + comp.area;
-            }, 0);
-            
-            const totalProduct = totalSurface * values.consumption * values.layers;
-
-            setCalculationResult({
-                totalSurface,
-                totalProduct,
-            });
+    const calculationResult = useMemo(() => {
+        const values = watchedForm as FormValues;
+        if (!values.components || !values.consumption || !values.layers) {
+            return null;
         }
-       
-        calculate(watchedForm as FormValues);
+
+        const totalSurface = values.components.reduce((acc, comp) => {
+            return acc + comp.area;
+        }, 0);
+        
+        if (totalSurface === 0) return null;
+
+        const totalProduct = totalSurface * values.consumption * values.layers;
+
+        return {
+            totalSurface,
+            totalProduct,
+        };
     }, [watchedForm]);
 
 
@@ -134,22 +130,20 @@ export function WaterproofingCalculatorForm() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
-                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border grid grid-cols-1 sm:grid-cols-[1fr,1fr,auto] gap-4 items-end">
                             <FormField
                                 control={form.control}
                                 name={`components.${index}.name`}
-                                render={({ field }) => ( <FormItem className="sm:col-span-2"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
+                                render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
                              <FormField
                                 control={form.control}
                                 name={`components.${index}.area`}
                                 render={({ field }) => ( <FormItem> <FormLabel>Surface (m²)</FormLabel> <FormControl><div className="relative"><AreaChart className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
-                            <div className="col-span-1 sm:col-span-3 flex justify-end">
-                                <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>
-                                    <Trash2 className="h-4 w-4 mr-2" /> Supprimer
-                                </Button>
-                            </div>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive">
+                                <Trash2 className="h-5 w-5" />
+                            </Button>
                         </div>
                         ))}
                     </CardContent>

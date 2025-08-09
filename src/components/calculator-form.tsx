@@ -112,7 +112,7 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
-      <FormLabel className="text-muted-foreground">Sous-Total</FormLabel>
+      <FormLabel className="text-muted-foreground">Sous-Total Volume</FormLabel>
       <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(3)} m³
       </div>
@@ -151,29 +151,27 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
             <AccordionContent>
                 <div className="border-t">
                     <div className="space-y-6 p-4 sm:p-6">
-                        <div className="flex items-center justify-between">
-                             <FormField
-                                control={control}
-                                name={`ouvrages.${ouvrageIndex}.dosage`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                    <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
-                                        <FormControl>
-                                        <SelectTrigger className="text-base">
-                                            <SelectValue placeholder="Sélectionnez un dosage" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                        {Object.entries(concreteDosages).map(([key, value]) => (
-                                            <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
-                                        ))}
-                                        </SelectContent>
-                                    </Select>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                         <FormField
+                            control={control}
+                            name={`ouvrages.${ouvrageIndex}.dosage`}
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                <FormLabel>Type d'ouvrage (Dosage)</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(parseInt(value, 10))} defaultValue={String(field.value)}>
+                                    <FormControl>
+                                    <SelectTrigger className="text-base h-11">
+                                        <SelectValue placeholder="Sélectionnez un dosage" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {Object.entries(concreteDosages).map(([key, value]) => (
+                                        <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
 
                         {componentFields.map((componentField, componentIndex) => {
                           const watchedComponent = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}`});
@@ -216,10 +214,8 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                             </div>
                             <Separator />
-                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                                <div className="sm:col-span-2">
-                                     <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
-                                </div>
+                             <div className="flex items-center justify-between">
+                                <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
                                 <Button type="button" variant="destructive" size="sm" onClick={() => removeComponent(componentIndex)}>
                                     <Trash2 className="h-4 w-4 mr-2" /> Supprimer
                                 </Button>
@@ -277,64 +273,58 @@ export function CalculatorForm() {
     name: 'ouvrages',
   });
   
-  const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-  
   const watchedForm = useWatch({ control: form.control });
 
-  useEffect(() => {
-    const calculateTotals = (values: FormValues) => {
-        if (!values.ouvrages) {
-            setCalculationResult(null);
-            return;
-        }
-      let totalVolume = 0;
-      const byDosage: CalculationResult['byDosage'] = [];
-
-      values.ouvrages.forEach((ouvrage, index) => {
-          const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
-          if (!dosageInfo) return;
-
-          const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
-              return acc + calculateComponentVolume(comp);
-          }, 0);
-
-          totalVolume += ouvrageVolume;
-
-          const cementBags = Math.ceil((ouvrageVolume * dosageInfo.cement) / 50);
-          const totalSandM3 = ouvrageVolume * dosageInfo.sand;
-          const totalGravelM3 = ouvrageVolume * dosageInfo.gravel;
-          const totalWaterLiters = ouvrageVolume * dosageInfo.water;
-
-          byDosage[index] = {
-              dosage: String(ouvrage.dosage),
-              volume: ouvrageVolume,
-              materials: {
-                  cement: cementBags,
-                  sand: totalSandM3,
-                  gravel: totalGravelM3,
-                  water: totalWaterLiters,
-              },
-          };
-      });
-
-      const totalMaterials = byDosage.reduce((acc, current) => {
-          if(current) {
-            acc.cement += current.materials.cement;
-            acc.sand += current.materials.sand;
-            acc.gravel += current.materials.gravel;
-            acc.water += current.materials.water;
-          }
-          return acc;
-      }, { cement: 0, sand: 0, gravel: 0, water: 0 });
-
-      setCalculationResult({
-          totalVolume,
-          totalMaterials,
-          byDosage,
-      });
+  const calculationResult = useMemo(() => {
+    const values = watchedForm as FormValues;
+    if (!values.ouvrages) {
+        return null;
     }
-    
-    calculateTotals(watchedForm as FormValues);
+    let totalVolume = 0;
+    const byDosage: CalculationResult['byDosage'] = [];
+
+    values.ouvrages.forEach((ouvrage, index) => {
+        const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
+        if (!dosageInfo) return;
+
+        const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
+            return acc + calculateComponentVolume(comp);
+        }, 0);
+
+        totalVolume += ouvrageVolume;
+
+        const cementBags = Math.ceil((ouvrageVolume * dosageInfo.cement) / 50);
+        const totalSandM3 = ouvrageVolume * dosageInfo.sand;
+        const totalGravelM3 = ouvrageVolume * dosageInfo.gravel;
+        const totalWaterLiters = ouvrageVolume * dosageInfo.water;
+
+        byDosage[index] = {
+            dosage: String(ouvrage.dosage),
+            volume: ouvrageVolume,
+            materials: {
+                cement: cementBags,
+                sand: totalSandM3,
+                gravel: totalGravelM3,
+                water: totalWaterLiters,
+            },
+        };
+    });
+
+    const totalMaterials = byDosage.reduce((acc, current) => {
+        if(current) {
+          acc.cement += current.materials.cement;
+          acc.sand += current.materials.sand;
+          acc.gravel += current.materials.gravel;
+          acc.water += current.materials.water;
+        }
+        return acc;
+    }, { cement: 0, sand: 0, gravel: 0, water: 0 });
+
+    return {
+        totalVolume,
+        totalMaterials,
+        byDosage,
+    };
   }, [watchedForm]);
 
 
@@ -378,11 +368,11 @@ export function CalculatorForm() {
                             <div className="space-y-3 pt-4">
                                 <h4 className="font-semibold text-lg">Total des matériaux :</h4>
                                 <div className="flex items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M5 8.5A2.5 2.5 0 0 1 7.5 6h9A2.5 2.5 0 0 1 19 8.5v7a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 15.5v-7Z"/><path d="M8 6.5v9"/></svg>
                                     <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.cement}</span> sacs de ciment (50kg)</p>
                                 </div>
                                 <div className="flex items-center gap-3"> <Sprout className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.sand.toFixed(2)}</span> m³ de sable</p> </div>
-                                <div className="flex items-center gap-3"> <Triangle className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.gravel.toFixed(2)}</span> m³ de gravier</p> </div>
+                                <div className="flex items-center gap-3"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.gravel.toFixed(2)}</span> m³ de gravier</p> </div>
                                 <div className="flex items-center gap-3"> <Droplets className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.water.toFixed(0)}</span> litres d'eau</p> </div>
                             </div>
                             

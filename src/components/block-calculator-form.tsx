@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -54,7 +54,7 @@ type CalculationResult = {
     }
 } | null;
 
-const MemoizedSubTotal = ({ control, index }: { control: any, index: number }) => {
+const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, index: number }) => {
   const data = useWatch({ control, name: `components.${index}` });
 
   const subtotal = useMemo(() => {
@@ -94,66 +94,41 @@ export function BlockCalculatorForm() {
         name: 'components',
     });
 
-    const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-
     const watchedForm = useWatch({ control: form.control });
 
-    useEffect(() => {
-        const calculate = (values: FormValues) => {
-            const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
-            if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness ) {
-                setCalculationResult(null);
-                return;
-            }
-            
-            const totalSurface = components.reduce((acc, comp) => {
-                return acc + (comp.length * comp.height);
-            }, 0);
-
-            const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
-            const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
-
-            // Mortar Calculation
-            const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
-            // Volume of mortar per block = (L*H*T) - (l*h*t) ; but simpler to estimate volume of joints
-            // Horizontal joint volume = Surface * joint_thickness
-            // Vertical joint volume = (Total Height / (block_height+joint_thickness)) * num_vertical_joints_per_row * joint_thickness * block_thickness
-            // Let's use a simpler, more common estimation: Volume of mortar is the total volume of joints for the whole surface.
-            // Volume of one block with mortar: (L+j)*(H+j)*T
-            // Volume of one block without mortar: L*H*T
-            // Mortar per block = (L+j)(H+j)T - LHT is not right because thickness is for the whole wall.
-            // Correct approach:
-            const totalLength = components.reduce((acc, comp) => acc + comp.length, 0);
-            const numBlocksHigh = Math.ceil(components.reduce((acc, comp) => Math.max(acc, comp.height), 0) / (blockHeight + jointThickness));
-            
-            // Mortar volume = Total volume of wall - Total volume of blocks
-            const totalWallVolume = totalSurface * blockThickness;
-            const singleBlockVolume = blockLength * blockHeight * blockThickness;
-            const totalBlocksVolume = blocksNeeded * singleBlockVolume;
-            // This above is incorrect as it doesnt account for joints.
-
-            // Let's calculate joint volume directly
-            // Mortar volume = (Total surface area - (Area of blocks)) * block thickness
-            // Area of all blocks = blocksNeeded * blockLength * blockHeight
-            // Mortar volume for joints = totalSurface * jointThickness
-            const mortarVolume = totalSurface * jointThickness * (1 + blockHeight / blockLength); // Simplified formula for horizontal and vertical joints
-            
-            const cementKg = mortarVolume * mortarDosageInfo.cement;
-            const cementBags = Math.ceil(cementKg / 50);
-            const sandM3 = mortarVolume * mortarDosageInfo.sand;
-
-            setCalculationResult({ 
-                blocksNeeded, 
-                totalSurface,
-                blocksPerM2,
-                mortar: {
-                    volume: mortarVolume,
-                    cementBags,
-                    sandM3
-                }
-            });
+    const calculationResult = useMemo(() => {
+        const values = watchedForm as FormValues;
+        const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
+        if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness ) {
+            return null;
         }
-        calculate(watchedForm as FormValues);
+        
+        const totalSurface = components.reduce((acc, comp) => {
+            return acc + (comp.length * comp.height);
+        }, 0);
+
+        if (totalSurface === 0) return null;
+
+        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
+        const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
+
+        const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
+        const mortarVolume = (totalSurface * blockThickness) - (blocksNeeded * blockLength * blockHeight * blockThickness);
+        
+        const cementKg = mortarVolume * mortarDosageInfo.cement;
+        const cementBags = Math.ceil(cementKg / 50);
+        const sandM3 = mortarVolume * mortarDosageInfo.sand;
+
+        return { 
+            blocksNeeded, 
+            totalSurface,
+            blocksPerM2,
+            mortar: {
+                volume: mortarVolume,
+                cementBags,
+                sandM3
+            }
+        };
     }, [watchedForm]);
 
 
@@ -249,22 +224,6 @@ export function BlockCalculatorForm() {
                             )}
                         />
                     </CardContent>
-                    {calculationResult && (
-                    <CardFooter className="bg-muted/30 border-t p-4 flex-col items-start gap-2">
-                         <h4 className="font-semibold text-lg">Mortier de pose :</h4>
-                         <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
-                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Sprout className="h-5 w-5 text-primary" />
-                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground pt-2">Note: Prévoyez une marge de 5-10% pour les pertes.</p>
-                    </CardFooter>
-                    )}
                 </Card>
 
                 <Card className="shadow-lg">
@@ -294,7 +253,7 @@ export function BlockCalculatorForm() {
                                     <Trash2 className="h-5 w-5" />
                                 </Button>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                                 <FormField
                                     control={form.control}
                                     name={`components.${index}.length`}
@@ -325,9 +284,6 @@ export function BlockCalculatorForm() {
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-                             <Separator className="my-4"/>
-                             <div className="flex justify-end">
                                 <MemoizedSubTotal control={form.control} index={index} />
                             </div>
                         </div>
@@ -350,13 +306,17 @@ export function BlockCalculatorForm() {
             <div className="lg:col-span-1 space-y-6">
                 <Card className="shadow-lg sticky top-8">
                     <CardHeader>
-                        <CardTitle>Référence de Calcul</CardTitle>
+                        <CardTitle>Aide au Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         {calculationResult && (
+                         {calculationResult ? (
                            <p className="text-sm text-muted-foreground">
                              Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
+                         ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Entrez les dimensions pour voir les estimations.
+                            </p>
                          )}
                     </CardContent>
                 </Card>
@@ -385,6 +345,18 @@ export function BlockCalculatorForm() {
                                 </p>
                                 <p className="text-muted-foreground mt-1">Blocs nécessaires</p>
                             </div>
+                        </div>
+                        <div className="space-y-3 pt-4">
+                            <h4 className="font-semibold text-lg">Mortier de pose :</h4>
+                            <div className="flex items-center gap-3">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Sprout className="h-5 w-5 text-primary" />
+                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground pt-2">Volume de mortier estimé: {calculationResult.mortar.volume.toFixed(3)} m³. Prévoyez une marge de 10%.</p>
                         </div>
                     </CardContent>
                     </Card>
