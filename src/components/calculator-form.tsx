@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,12 +15,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, Circle, Square } from 'lucide-react';
+import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Circle, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Separator } from './ui/separator';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { cn } from '@/lib/utils';
 
 const componentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -87,11 +86,10 @@ type CalculationResult = {
         gravel: number;
         water: number;
     };
-    byDosage: DosageResult[];
+    byDosage: (DosageResult | null)[];
 } | null;
 
-const calculateComponentVolume = (component: z.infer<typeof componentSchema> | undefined): number => {
-    if (!component) return 0;
+const calculateComponentVolume = (component: z.infer<typeof componentSchema>): number => {
     const { shape, length = 0, width = 0, diameter = 0, height = 0, quantity = 1 } = component;
     
     if (shape === 'cylindrical') {
@@ -104,9 +102,10 @@ const calculateComponentVolume = (component: z.infer<typeof componentSchema> | u
 
 const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: Control<FormValues>, ouvrageIndex: number, componentIndex: number }) => {
   const data = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}` });
+  const [subtotal, setSubtotal] = useState(0);
 
-  const subtotal = useMemo(() => {
-    return calculateComponentVolume(data);
+  useEffect(() => {
+    setSubtotal(calculateComponentVolume(data));
   }, [data]);
 
 
@@ -120,7 +119,8 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
   );
 };
 
-const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { ouvrageIndex: number, control: Control<FormValues>, removeOuvrage: (index: number) => void, dosageResult: DosageResult | undefined }) => {
+const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null }) => {
+    const { control } = form;
     const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
         control,
         name: `ouvrages.${ouvrageIndex}.components`,
@@ -274,19 +274,25 @@ export function CalculatorForm() {
     name: 'ouvrages',
   });
   
+  const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
+  
   const watchedForm = useWatch({ control: form.control });
 
-  const calculationResult = useMemo(() => {
+  useEffect(() => {
     const values = watchedForm as FormValues;
     if (!values.ouvrages) {
-        return null;
+        setCalculationResult(null);
+        return;
     }
     let totalVolume = 0;
-    const byDosage: DosageResult[] = [];
+    const byDosage: (DosageResult | null)[] = [];
 
     values.ouvrages.forEach((ouvrage, index) => {
         const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
-        if (!dosageInfo) return;
+        if (!dosageInfo || !ouvrage.components) {
+            byDosage[index] = null;
+            return;
+        }
 
         const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
             return acc + calculateComponentVolume(comp);
@@ -321,11 +327,11 @@ export function CalculatorForm() {
         return acc;
     }, { cement: 0, sand: 0, gravel: 0, water: 0 });
 
-    return {
+    setCalculationResult({
         totalVolume,
         totalMaterials,
         byDosage,
-    };
+    });
   }, [watchedForm]);
 
 
@@ -338,10 +344,10 @@ export function CalculatorForm() {
                     {fields.map((ouvrageField, ouvrageIndex) => (
                         <OuvrageItem
                             key={ouvrageField.id}
+                            form={form}
                             ouvrageIndex={ouvrageIndex}
-                            control={form.control}
                             removeOuvrage={remove}
-                            dosageResult={calculationResult?.byDosage[ouvrageIndex]}
+                            dosageResult={calculationResult?.byDosage[ouvrageIndex] || null}
                         />
                     ))}
                 </Accordion>

@@ -82,7 +82,11 @@ type CalculationResult = {
     ouvrageResults: (OuvrageResult | null)[];
 } | null;
 
-const calculateSteel = (values: FormValues) => {
+const calculateSteel = (values: FormValues | undefined) => {
+    if (!values || !values.ouvrages) {
+        return null;
+    }
+    
     let totalWeight = 0;
     const weightByDiameter: { [key: string]: { weight: number, length: number, bars: number } } = {};
     
@@ -110,9 +114,9 @@ const calculateSteel = (values: FormValues) => {
         if (ouvrage.shape === 'circulaire' && ouvrage.diameter) {
              const diameterMinusCoating = ouvrage.diameter - 2 * ouvrage.coating;
              singleTransversalLength = Math.PI * diameterMinusCoating; // Circonférence de l'étrier circulaire
-        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && ouvrage.height) {
+        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && (ouvrage.type === 'semelle' || ouvrage.height)) {
             const widthMinusCoating = ouvrage.width - 2 * ouvrage.coating;
-            const heightMinusCoating = ouvrage.height - 2 * ouvrage.coating;
+            const heightMinusCoating = (ouvrage.height || 0) - 2 * ouvrage.coating;
             if (ouvrage.transversalBars.type === 'etrier') {
                 singleTransversalLength = 2 * (widthMinusCoating + heightMinusCoating);
             } else { // 'epingle'
