@@ -87,11 +87,11 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
         
-        if (!components || !mortarDosage || !blockLength || !blockHeight || !blockThickness || blockLength <= 0 || blockHeight <= 0 || blockThickness <= 0 || jointThickness <= 0) {
+        if (!mortarDosage || !blockLength || !blockHeight || !blockThickness || jointThickness <= 0) {
             return null;
         }
 
-        const totalSurface = components.reduce((acc, comp) => {
+        const totalSurface = (components || []).reduce((acc, comp) => {
             const length = Number(comp.length) || 0;
             const height = Number(comp.height) || 0;
             return acc + (length * height);
@@ -99,7 +99,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
         const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
         
-        if (totalSurface === 0 || isNaN(blocksPerM2) || blocksPerM2 === Infinity) {
+        if (totalSurface === 0) {
              return {
                 blocksNeeded: 0,
                 totalSurface: 0,
@@ -365,6 +365,3 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
-
-    
-    
