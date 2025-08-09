@@ -42,14 +42,6 @@ const mortarDosages = {
     "350": { name: "Mortier riche (300 kg/m³)", cement: 350, sand: 0.95 },
 };
 
-const defaultBlockValues = {
-    blockLength: 0.40,
-    blockHeight: 0.20,
-    blockThickness: 0.20,
-    mortarDosage: "300" as const,
-    jointThickness: 0.015,
-};
-
 type CalculationResult = {
     blocksNeeded: number;
     totalSurface: number;
@@ -95,7 +87,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
 
-        if (!blockLength || !blockHeight || blockThickness || blockLength <= 0 || blockHeight <= 0) {
+        if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
             return null;
         }
 
@@ -132,13 +124,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         };
     }, [watchedForm]);
 
-    const resetParameters = () => {
-        form.reset({
-            ...form.getValues(),
-            ...defaultBlockValues
-        });
-    };
-
   return (
     <Form {...form}>
       <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
@@ -147,10 +132,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                  <Card className="shadow-lg">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
-                         <Button type="button" variant="outline" size="sm" onClick={resetParameters}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Actualiser les paramètres
-                        </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
                         <FormField
@@ -380,5 +361,3 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
-
-    
