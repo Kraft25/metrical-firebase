@@ -15,17 +15,37 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, ChevronDown } from 'lucide-react';
+import { PlusCircle, Trash2, Ruler, Hash, Building, Droplets, Sprout, Triangle, Circle, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Separator } from './ui/separator';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { cn } from '@/lib/utils';
 
 const componentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
-  length: z.coerce.number().min(0, 'Positif requis.'),
-  width: z.coerce.number().min(0, 'Positif requis.'),
+  shape: z.enum(['rectangular', 'cylindrical']).default('rectangular'),
+  length: z.coerce.number().min(0, 'Positif requis.').optional(),
+  width: z.coerce.number().min(0, 'Positif requis.').optional(),
+  diameter: z.coerce.number().min(0, 'Positif requis.').optional(),
   height: z.coerce.number().min(0, 'Positif requis.'),
   quantity: z.coerce.number().int().min(1, 'Minimum 1.'),
+}).refine((data) => {
+    if (data.shape === 'rectangular') {
+        return data.length !== undefined && data.width !== undefined;
+    }
+    return true;
+}, {
+    message: "Longueur et largeur sont requises pour un rectangle.",
+    path: ["length"]
+}).refine((data) => {
+    if (data.shape === 'cylindrical') {
+        return data.diameter !== undefined;
+    }
+    return true;
+}, {
+    message: "Le diamètre est requis pour un cylindre.",
+    path: ["diameter"]
 });
 
 const ouvrageSchema = z.object({
@@ -70,13 +90,23 @@ type CalculationResult = {
     byDosage: DosageResult[];
 } | null;
 
+const calculateComponentVolume = (component: z.infer<typeof componentSchema> | undefined): number => {
+    if (!component) return 0;
+    const { shape, length = 0, width = 0, diameter = 0, height = 0, quantity = 1 } = component;
+    
+    if (shape === 'cylindrical') {
+        const radius = diameter / 2;
+        return (Math.PI * radius * radius * height) * quantity;
+    }
+    // Default to rectangular
+    return (length * width * height) * quantity;
+};
 
 const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: Control<FormValues>, ouvrageIndex: number, componentIndex: number }) => {
   const data = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}` });
 
   const subtotal = useMemo(() => {
-    const { length = 0, width = 0, height = 0, quantity = 1 } = data || {};
-    return length * width * height * quantity;
+    return calculateComponentVolume(data);
   }, [data]);
 
 
@@ -145,14 +175,43 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                             />
                         </div>
 
-                        {componentFields.map((componentField, componentIndex) => (
-                        <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
+                        {componentFields.map((componentField, componentIndex) => {
+                          const watchedComponent = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}`});
+                          const shape = watchedComponent.shape || 'rectangular';
+
+                          return (
+                          <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem className="md:col-span-2"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                <FormField
+                                  control={control}
+                                  name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.shape`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Forme</FormLabel>
+                                      <FormControl>
+                                        <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
+                                          <ToggleGroupItem value="rectangular" className="gap-2 h-9">
+                                            <Square className="h-5 w-5"/> Rectangle
+                                          </ToggleGroupItem>
+                                          <ToggleGroupItem value="cylindrical" className="gap-2 h-9">
+                                            <Circle className="h-5 w-5"/> Cylindre
+                                          </ToggleGroupItem>
+                                        </ToggleGroup>
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
-                                <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                                <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                {shape === 'rectangular' ? (
+                                  <>
+                                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                  </>
+                                ) : (
+                                  <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><div className="relative"><Circle className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                )}
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                             </div>
@@ -165,9 +224,9 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                                     <Trash2 className="h-4 w-4 mr-2" /> Supprimer
                                 </Button>
                             </div>
-                        </div>
-                        ))}
-                        <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => appendComponent({ name: '', length: 0, width: 0, height: 0, quantity: 1 })}>
+                          </div>
+                        )})}
+                        <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => appendComponent({ name: 'Nouveau composant', shape: 'rectangular', length: 1, width: 1, height: 1, quantity: 1 })}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter un composant
                         </Button>
@@ -199,14 +258,14 @@ export function CalculatorForm() {
         {
           dosage: 350,
           components: [
-            { name: 'Poteaux', length: 0.3, width: 0.3, height: 3, quantity: 4 },
-            { name: 'Poutres', length: 5, width: 0.2, height: 0.3, quantity: 2 },
+            { name: 'Poteaux (cylindriques)', shape: 'cylindrical', diameter: 0.3, height: 3, quantity: 4 },
+            { name: 'Poutres (rectangulaires)', shape: 'rectangular', length: 5, width: 0.2, height: 0.3, quantity: 2 },
           ]
         },
         {
           dosage: 300,
           components: [
-            { name: 'Dallage', length: 10, width: 8, height: 0.12, quantity: 1 },
+            { name: 'Dallage', shape: 'rectangular', length: 10, width: 8, height: 0.12, quantity: 1 },
           ]
         },
       ],
@@ -236,7 +295,7 @@ export function CalculatorForm() {
           if (!dosageInfo) return;
 
           const ouvrageVolume = ouvrage.components.reduce((acc, comp) => {
-              return acc + (comp.length * comp.width * comp.height * comp.quantity);
+              return acc + calculateComponentVolume(comp);
           }, 0);
 
           totalVolume += ouvrageVolume;
@@ -295,7 +354,7 @@ export function CalculatorForm() {
                         />
                     ))}
                 </Accordion>
-                 <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', length: 1, width: 1, height: 1, quantity: 1 }]})}>
+                 <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', shape: 'rectangular', length: 1, width: 1, height: 1, quantity: 1 }]})}>
                     <PlusCircle className="mr-2 h-5 w-5" />
                     Ajouter un nouveau parc d'ouvrages
                  </Button>
@@ -339,6 +398,3 @@ export function CalculatorForm() {
     </Form>
   );
 }
-
-    
-    
