@@ -95,19 +95,15 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness = 0, blockLength, blockHeight, blockThickness } = values;
 
-        if (!blockLength || !blockHeight || !blockThickness) {
+        // Basic validation to prevent calculations with invalid data
+        if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
             return null;
         }
 
         const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
         
         if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
-            return {
-                blocksNeeded: 0,
-                totalSurface: 0,
-                blocksPerM2: 0,
-                mortar: { volume: 0, cementBags: 0, sandM3: 0 }
-            };
+            return null;
         }
 
         const totalSurface = (components || []).reduce((acc, comp) => {
@@ -115,15 +111,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             const height = Number(comp.height) || 0;
             return acc + (length * height);
         }, 0);
-        
-        if (totalSurface === 0) {
-             return {
-                blocksNeeded: 0,
-                totalSurface: 0,
-                blocksPerM2: blocksPerM2,
-                mortar: { volume: 0, cementBags: 0, sandM3: 0 }
-            };
-        }
         
         const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
         
@@ -135,7 +122,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const sandM3 = mortarVolume * mortarDosageInfo.sand;
 
         return { 
-            blocksNeeded, 
+            blocksNeeded: isNaN(blocksNeeded) ? 0 : blocksNeeded, 
             totalSurface,
             blocksPerM2: blocksPerM2,
             mortar: {
@@ -341,7 +328,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                            </p>
                          ) : (
                             <p className="text-sm text-muted-foreground">
-                                Entrez les dimensions pour voir les estimations.
+                                Entrez les dimensions des blocs pour voir les estimations.
                             </p>
                          )}
                     </CardContent>
