@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { Ruler, PlusCircle, Trash2, Building, Hash, GitCommitHorizontal } from 'lucide-react';
+import { Ruler, PlusCircle, Trash2, Building, Hash, GitCommitHorizontal, Circle, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { cn } from '@/lib/utils';
 
 const steelDiameters: { [key: string]: { weightPerMeter: number } } = {
     '6': { weightPerMeter: 0.222 },
@@ -26,9 +28,11 @@ const COMMERCIAL_BAR_LENGTH = 12; // 12 meters
 const ouvrageSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
   type: z.enum(['poutre', 'poteau', 'semelle']),
+  shape: z.enum(['rectangulaire', 'circulaire']).default('rectangulaire'),
   length: z.coerce.number().positive("La longueur est requise."),
-  width: z.coerce.number().positive("La largeur est requise."),
-  height: z.coerce.number().positive("La hauteur est requise."),
+  width: z.coerce.number().positive("La largeur est requise.").optional(),
+  height: z.coerce.number().positive("La hauteur est requise.").optional(),
+  diameter: z.coerce.number().positive("Le diamètre est requis.").optional(),
   quantity: z.coerce.number().int().min(1),
   longitudinalBars: z.object({
     diameter: z.string().nonempty("Diamètre requis."),
@@ -40,7 +44,27 @@ const ouvrageSchema = z.object({
     spacing: z.coerce.number().positive("Espacement requis."),
   }),
   coating: z.coerce.number().min(0).default(0.025), // Enrobage de 2.5cm par défaut
+}).refine(data => data.type !== 'poteau' ? data.shape === 'rectangulaire' : true, {
+    message: "Seuls les poteaux peuvent être circulaires.",
+    path: ['shape'],
+}).refine(data => {
+    if (data.shape === 'rectangulaire') {
+        return data.width !== undefined && data.height !== undefined;
+    }
+    return true;
+}, {
+    message: "Largeur et hauteur sont requises pour une forme rectangulaire.",
+    path: ['width']
+}).refine(data => {
+    if (data.shape === 'circulaire') {
+        return data.diameter !== undefined;
+    }
+    return true;
+}, {
+    message: "Le diamètre est requis pour une forme circulaire.",
+    path: ['diameter']
 });
+
 
 const formSchema = z.object({
   ouvrages: z.array(ouvrageSchema)
@@ -63,7 +87,7 @@ const calculateSteel = (values: FormValues) => {
     const weightByDiameter: { [key: string]: { weight: number, length: number, bars: number } } = {};
     
     const ouvrageResults = values.ouvrages.map(ouvrage => {
-        if (!steelDiameters[ouvrage.longitudinalBars.diameter] || !steelDiameters[ouvrage.transversalBars.diameter]) {
+        if (!ouvrage.longitudinalBars.diameter || !ouvrage.transversalBars.diameter || !steelDiameters[ouvrage.longitudinalBars.diameter] || !steelDiameters[ouvrage.transversalBars.diameter]) {
             return null;
         }
 
@@ -82,15 +106,18 @@ const calculateSteel = (values: FormValues) => {
         const transWeightPerMeter = steelDiameters[transDiameter].weightPerMeter;
         
         let singleTransversalLength = 0;
-        const widthMinusCoating = ouvrage.width - 2 * ouvrage.coating;
-        const heightMinusCoating = ouvrage.height - 2 * ouvrage.coating;
         
-        if (ouvrage.transversalBars.type === 'etrier') {
-            // Périmètre d'un étrier fermé (approximation sans les crochets de fermeture)
-            singleTransversalLength = 2 * (widthMinusCoating + heightMinusCoating);
-        } else { // 'epingle'
-            // Longueur d'une épingle en U (approximation)
-            singleTransversalLength = widthMinusCoating + 2 * heightMinusCoating;
+        if (ouvrage.shape === 'circulaire' && ouvrage.diameter) {
+             const diameterMinusCoating = ouvrage.diameter - 2 * ouvrage.coating;
+             singleTransversalLength = Math.PI * diameterMinusCoating; // Circonférence de l'étrier circulaire
+        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && ouvrage.height) {
+            const widthMinusCoating = ouvrage.width - 2 * ouvrage.coating;
+            const heightMinusCoating = ouvrage.height - 2 * ouvrage.coating;
+            if (ouvrage.transversalBars.type === 'etrier') {
+                singleTransversalLength = 2 * (widthMinusCoating + heightMinusCoating);
+            } else { // 'epingle'
+                singleTransversalLength = widthMinusCoating + 2 * heightMinusCoating;
+            }
         }
 
         const transversalCount = Math.ceil(ouvrage.length / ouvrage.transversalBars.spacing);
@@ -128,8 +155,9 @@ export function SteelCalculatorForm() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             ouvrages: [
-                { name: "Poutre Principale", type: 'poutre', length: 6, width: 0.25, height: 0.4, quantity: 1, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.20 }, coating: 0.025 },
-                { name: "Poteaux P1", type: 'poteau', length: 3, width: 0.3, height: 0.3, quantity: 4, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: "etrier", diameter: "6", spacing: 0.15 }, coating: 0.025 },
+                { name: "Poutre Principale", type: 'poutre', shape: 'rectangulaire', length: 6, width: 0.25, height: 0.4, quantity: 1, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.20 }, coating: 0.025 },
+                { name: "Poteaux Rect.", type: 'poteau', shape: 'rectangulaire', length: 3, width: 0.3, height: 0.3, quantity: 4, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: "etrier", diameter: "6", spacing: 0.15 }, coating: 0.025 },
+                { name: "Poteaux Circ.", type: 'poteau', shape: 'circulaire', length: 3, diameter: 0.35, quantity: 2, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.15 }, coating: 0.025 },
             ]
         },
     });
@@ -155,7 +183,7 @@ export function SteelCalculatorForm() {
             <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
-                        <Accordion type="multiple" defaultValue={['ouvrage-0']} className="space-y-6">
+                        <Accordion type="multiple" defaultValue={['ouvrage-0', 'ouvrage-1', 'ouvrage-2']} className="space-y-6">
                             {fields.map((field, index) => {
                                 const ouvrage = watchedOuvrages[index];
                                 const ouvrageResult = calculationResult?.ouvrageResults[index];
@@ -170,7 +198,7 @@ export function SteelCalculatorForm() {
                                                 </span>
                                                 <div>
                                                     <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
-                                                    <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type}</p>
+                                                    <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type} ({ouvrage.shape})</p>
                                                 </div>
                                             </div>
                                         </AccordionTrigger>
@@ -185,8 +213,13 @@ export function SteelCalculatorForm() {
                                                 <FormField control={form.control} name={`ouvrages.${index}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Poutre RDC" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                                 <FormField control={form.control} name={`ouvrages.${index}.type`} render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Type</FormLabel>
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormLabel>Type d'Ouvrage</FormLabel>
+                                                        <Select onValueChange={(value) => {
+                                                            field.onChange(value);
+                                                            if (value !== 'poteau') {
+                                                                form.setValue(`ouvrages.${index}.shape`, 'rectangulaire');
+                                                            }
+                                                        }} defaultValue={field.value}>
                                                             <FormControl><SelectTrigger className="text-base h-11"><SelectValue/></SelectTrigger></FormControl>
                                                             <SelectContent>
                                                                 <SelectItem value="poutre">Poutre</SelectItem>
@@ -197,10 +230,39 @@ export function SteelCalculatorForm() {
                                                     </FormItem>
                                                 )}/>
                                             </div>
+                                            
+                                            {ouvrage.type === 'poteau' && (
+                                                <FormField
+                                                control={form.control}
+                                                name={`ouvrages.${index}.shape`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                    <FormLabel>Forme du Poteau</FormLabel>
+                                                    <FormControl>
+                                                        <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
+                                                        <ToggleGroupItem value="rectangulaire" className="gap-2 h-9">
+                                                            <Square className="h-5 w-5"/> Rectangle
+                                                        </ToggleGroupItem>
+                                                        <ToggleGroupItem value="circulaire" className="gap-2 h-9">
+                                                            <Circle className="h-5 w-5"/> Circulaire
+                                                        </ToggleGroupItem>
+                                                        </ToggleGroup>
+                                                    </FormControl>
+                                                    </FormItem>
+                                                )}
+                                                />
+                                            )}
+
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
-                                                <FormField control={form.control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                                <FormField control={form.control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long./Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                                {ouvrage.shape === 'rectangulaire' ? (
+                                                    <>
+                                                        <FormField control={form.control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                                        <FormField control={form.control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut./Ép. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                                    </>
+                                                ) : (
+                                                    <FormField control={form.control} name={`ouvrages.${index}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                                )}
                                                 <FormField control={form.control} name={`ouvrages.${index}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl> </FormItem> )}/>
                                             </div>
 
@@ -221,7 +283,7 @@ export function SteelCalculatorForm() {
                                             <h4 className="font-semibold text-lg">Aciers Transversaux</h4>
                                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                                  <FormField control={form.control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
-                                                    <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
+                                                    <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={ouvrage.shape === 'circulaire'}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
                                                 )}/>
                                                 <FormField control={form.control} name={`ouvrages.${index}.transversalBars.diameter`} render={({ field }) => (
                                                     <FormItem className="sm:col-span-1"><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
@@ -249,7 +311,7 @@ export function SteelCalculatorForm() {
                                 )
                             })}
                         </Accordion>
-                         <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: "Nouveau", type: 'poutre', length: 1, width: 0.2, height: 0.2, quantity: 1, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: 'etrier', diameter: "6", spacing: 0.25 }, coating: 0.025 })}>
+                         <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: "Nouveau", type: 'poutre', shape: 'rectangulaire', length: 1, width: 0.2, height: 0.2, quantity: 1, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: 'etrier', diameter: "6", spacing: 0.25 }, coating: 0.025 })}>
                             <PlusCircle className="mr-2 h-5 w-5" />
                             Ajouter un ouvrage
                          </Button>
@@ -290,5 +352,3 @@ export function SteelCalculatorForm() {
         </Form>
     );
 }
-
-    
