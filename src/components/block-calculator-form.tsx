@@ -87,7 +87,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
         
-        if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness ) {
+        if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness || blockLength <= 0 || blockHeight <= 0 || blockThickness <= 0) {
             return null;
         }
 
@@ -101,7 +101,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             ? 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness))
             : 0;
         
-        if (totalSurface === 0) {
+        if (totalSurface === 0 || blocksPerM2 === 0) {
              return {
                 blocksNeeded: 0,
                 totalSurface: 0,
@@ -309,7 +309,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                         <CardTitle>Aide au Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         {calculationResult && calculationResult.blocksPerM2 > 0 ? (
+                         {calculationResult && calculationResult.blocksPerM2 > 0 && !isNaN(calculationResult.blocksPerM2) ? (
                            <p className="text-sm text-muted-foreground">
                              Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
@@ -368,4 +368,5 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
   );
 }
 
+    
     
