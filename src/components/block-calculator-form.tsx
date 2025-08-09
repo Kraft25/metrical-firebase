@@ -107,14 +107,20 @@ export function BlockCalculatorForm() {
             return acc + (comp.length * comp.height);
         }, 0);
 
-        if (totalSurface === 0) return null;
-
         const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
-        const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
+        
+        if (totalSurface === 0) {
+             return {
+                blocksNeeded: 0,
+                totalSurface: 0,
+                blocksPerM2,
+                mortar: { volume: 0, cementBags: 0, sandM3: 0 }
+            };
+        }
 
+        const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
         const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
         const mortarVolume = (totalSurface * blockThickness) - (blocksNeeded * blockLength * blockHeight * blockThickness);
-        
         const cementKg = mortarVolume * mortarDosageInfo.cement;
         const cementBags = Math.ceil(cementKg / 50);
         const sandM3 = mortarVolume * mortarDosageInfo.sand;
@@ -320,7 +326,7 @@ export function BlockCalculatorForm() {
                          )}
                     </CardContent>
                 </Card>
-                 {calculationResult && (
+                 {calculationResult && calculationResult.totalSurface > 0 && (
                     <Card className="bg-accent/10 border-accent shadow-xl sticky top-48">
                     <CardHeader>
                         <CardTitle className="text-accent-foreground text-2xl">
