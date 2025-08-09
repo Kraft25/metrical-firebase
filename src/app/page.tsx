@@ -39,7 +39,8 @@ const DqeForm = dynamic(() => import('@/components/dqe-form').then(mod => mod.Dq
 
 const defaultValues = {
   volume: { ouvrages: [] },
-  blocks: {
+  blocks: { 
+    ouvrages: [],
     blockLength: 0.40,
     blockHeight: 0.20,
     blockThickness: 0.20,
@@ -134,3 +135,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
