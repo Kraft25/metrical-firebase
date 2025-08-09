@@ -102,20 +102,22 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
 
     return (
         <AccordionItem value={`ouvrage-${ouvrageIndex}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
-            <AccordionTrigger className="p-4 sm:p-6 text-lg font-semibold hover:no-underline">
-                 <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
-                        <span className="bg-primary/10 text-primary font-bold py-1 px-3 rounded-full">#{ouvrageIndex + 1}</span>
-                        <h3 className="text-lg font-semibold text-foreground">{dosageName}</h3>
+             <div className="flex items-center p-4 sm:p-6 text-lg font-semibold">
+                <AccordionTrigger className="w-full hover:no-underline">
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
+                            <span className="bg-primary/10 text-primary font-bold py-1 px-3 rounded-full">#{ouvrageIndex + 1}</span>
+                            <h3 className="text-lg font-semibold text-foreground">{dosageName}</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {dosageResult && <span className="text-base font-bold text-muted-foreground">{dosageResult.volume.toFixed(2)} m³</span>}
+                        </div>
                     </div>
-                     <div className="flex items-center gap-2">
-                         {dosageResult && <span className="text-base font-bold text-muted-foreground">{dosageResult.volume.toFixed(2)} m³</span>}
-                         <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={(e) => { e.stopPropagation(); removeOuvrage(ouvrageIndex); }}>
-                            <Trash2 className="h-5 w-5"/>
-                        </Button>
-                     </div>
-                </div>
-            </AccordionTrigger>
+                </AccordionTrigger>
+                <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => removeOuvrage(ouvrageIndex)}>
+                    <Trash2 className="h-5 w-5"/>
+                </Button>
+            </div>
             <AccordionContent>
                 <div className="border-t">
                     <div className="space-y-6 p-4 sm:p-6">
@@ -155,10 +157,13 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                             </div>
                             <Separator />
-                            <div className="grid grid-cols-2 gap-4 items-center">
-                                <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
-                                <Button type="button" variant="destructive" size="icon" onClick={() => removeComponent(componentIndex)} className="w-full sm:w-auto sm:justify-self-end">
+                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                                <div className="sm:col-span-2">
+                                     <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
+                                </div>
+                                <Button type="button" variant="ghost" className="text-destructive" onClick={() => removeComponent(componentIndex)}>
                                     <Trash2 className="h-5 w-5" />
+                                    <span>Supprimer</span>
                                 </Button>
                             </div>
                         </div>

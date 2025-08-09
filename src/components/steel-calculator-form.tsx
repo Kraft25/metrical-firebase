@@ -163,20 +163,22 @@ export function SteelCalculatorForm() {
                                 
                                 return (
                                 <AccordionItem key={field.id} value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
-                                     <AccordionTrigger className="p-4 sm:p-6 text-lg font-semibold hover:no-underline">
-                                        <div className="flex items-center justify-between w-full">
-                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
-                                                <span className="bg-primary/10 text-primary font-bold py-1 px-3 rounded-full">#{index + 1}</span>
-                                                <h3 className="text-lg font-semibold text-foreground">{ouvrageTitle}</h3>
+                                    <div className="flex items-center p-4 sm:p-6 text-lg font-semibold">
+                                        <AccordionTrigger className="w-full hover:no-underline">
+                                            <div className="flex items-center justify-between w-full">
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
+                                                    <span className="bg-primary/10 text-primary font-bold py-1 px-3 rounded-full">#{index + 1}</span>
+                                                    <h3 className="text-lg font-semibold text-foreground">{ouvrageTitle}</h3>
+                                                </div>
+                                                <div className="flex items-center gap-2 pr-4">
+                                                    {ouvrageResult && <span className="text-base font-bold text-muted-foreground">{ouvrageResult.totalWeight.toFixed(2)} kg</span>}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2 pr-4">
-                                                {ouvrageResult && <span className="text-base font-bold text-muted-foreground">{ouvrageResult.totalWeight.toFixed(2)} kg</span>}
-                                                <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={(e) => { e.stopPropagation(); remove(index); }}>
-                                                    <Trash2 className="h-5 w-5"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </AccordionTrigger>
+                                        </AccordionTrigger>
+                                        <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
+                                            <Trash2 className="h-5 w-5"/>
+                                        </Button>
+                                    </div>
                                     <AccordionContent>
                                         <div className="border-t p-6 space-y-6">
                                             {/* Infos générales */}
