@@ -40,12 +40,16 @@ const DqeForm = dynamic(() => import('@/components/dqe-form').then(mod => mod.Dq
 const defaultValues = {
   volume: { ouvrages: [] },
   blocks: {
-    mortarDosage: "300",
+    blockLength: 0.4,
+    blockHeight: 0.2,
+    blockThickness: 0.2,
+    mortarDosage: "300" as const,
+    jointThickness: 0.015,
     components: []
   },
   plaster: {
     thickness: 0.015,
-    dosage: "300",
+    dosage: "300" as const,
   },
   waterproofing: {
     consumption: 1.5,
