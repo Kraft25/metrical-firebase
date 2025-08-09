@@ -87,7 +87,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
         
-        if (!mortarDosage || !blockLength || !blockHeight || !blockThickness || jointThickness <= 0) {
+        if (!mortarDosage || !blockLength || !blockHeight || !blockThickness || !jointThickness) {
             return null;
         }
 
@@ -108,9 +108,14 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             };
         }
         
-        const blocksNeeded = !isNaN(blocksPerM2) ? Math.ceil(totalSurface * blocksPerM2) : 0;
+        const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
         const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
-        const mortarVolume = (totalSurface * blockThickness) - (blocksNeeded * blockLength * blockHeight * blockThickness);
+        
+        // Corrected mortar volume calculation
+        const totalVolumeOfWall = totalSurface * blockThickness;
+        const totalVolumeOfBlocks = blocksNeeded * blockLength * blockHeight * blockThickness;
+        const mortarVolume = totalVolumeOfWall - totalVolumeOfBlocks;
+
         const cementKg = mortarVolume * mortarDosageInfo.cement;
         const cementBags = Math.ceil(cementKg / 50);
         const sandM3 = mortarVolume * mortarDosageInfo.sand;
@@ -120,9 +125,9 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             totalSurface,
             blocksPerM2: isNaN(blocksPerM2) || !isFinite(blocksPerM2) ? 0 : blocksPerM2,
             mortar: {
-                volume: mortarVolume,
-                cementBags,
-                sandM3
+                volume: mortarVolume > 0 ? mortarVolume : 0,
+                cementBags: cementBags > 0 ? cementBags : 0,
+                sandM3: sandM3 > 0 ? sandM3 : 0
             }
         };
     }, [watchedForm]);
