@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers, Square } from 'lucide-react';
+import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers, Square, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const wallComponentSchema = z.object({
@@ -40,6 +40,14 @@ const mortarDosages = {
     "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
     "300": { name: "Mortier standard (300 kg/m³)", cement: 300, sand: 1.0 },
     "350": { name: "Mortier riche (300 kg/m³)", cement: 350, sand: 0.95 },
+};
+
+const defaultBlockValues = {
+    blockLength: 0.40,
+    blockHeight: 0.20,
+    blockThickness: 0.20,
+    mortarDosage: "300" as "250" | "300" | "350",
+    jointThickness: 0.015,
 };
 
 type CalculationResult = {
@@ -87,7 +95,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
         
-        if (!mortarDosage || !blockLength || !blockHeight || !blockThickness || !jointThickness) {
+        if (!mortarDosage || !blockLength || !blockHeight || !blockThickness || !jointThickness ) {
             return null;
         }
 
@@ -99,11 +107,20 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
         const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
         
+        if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
+             return {
+                blocksNeeded: 0,
+                totalSurface: 0,
+                blocksPerM2: 0,
+                mortar: { volume: 0, cementBags: 0, sandM3: 0 }
+            };
+        }
+
         if (totalSurface === 0) {
              return {
                 blocksNeeded: 0,
                 totalSurface: 0,
-                blocksPerM2: isNaN(blocksPerM2) || !isFinite(blocksPerM2) ? 0 : blocksPerM2,
+                blocksPerM2: blocksPerM2,
                 mortar: { volume: 0, cementBags: 0, sandM3: 0 }
             };
         }
@@ -111,7 +128,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
         const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
         
-        // Corrected mortar volume calculation
         const totalVolumeOfWall = totalSurface * blockThickness;
         const totalVolumeOfBlocks = blocksNeeded * blockLength * blockHeight * blockThickness;
         const mortarVolume = totalVolumeOfWall - totalVolumeOfBlocks;
@@ -123,7 +139,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         return { 
             blocksNeeded, 
             totalSurface,
-            blocksPerM2: isNaN(blocksPerM2) || !isFinite(blocksPerM2) ? 0 : blocksPerM2,
+            blocksPerM2: blocksPerM2,
             mortar: {
                 volume: mortarVolume > 0 ? mortarVolume : 0,
                 cementBags: cementBags > 0 ? cementBags : 0,
@@ -132,6 +148,13 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         };
     }, [watchedForm]);
 
+    const resetParameters = () => {
+        form.setValue('blockLength', defaultBlockValues.blockLength);
+        form.setValue('blockHeight', defaultBlockValues.blockHeight);
+        form.setValue('blockThickness', defaultBlockValues.blockThickness);
+        form.setValue('mortarDosage', defaultBlockValues.mortarDosage);
+        form.setValue('jointThickness', defaultBlockValues.jointThickness);
+    };
 
   return (
     <Form {...form}>
@@ -139,8 +162,11 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                  <Card className="shadow-lg">
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
+                         <Button type="button" variant="ghost" size="icon" onClick={resetParameters} aria-label="Réinitialiser les paramètres">
+                            <RefreshCw className="h-5 w-5 text-muted-foreground" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
                         <FormField
