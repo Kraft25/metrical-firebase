@@ -24,8 +24,6 @@ export default function Home() {
           </p>
         </header>
 
-        <AppSummary />
-
         <Tabs defaultValue="volume" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
             <TabsTrigger value="volume">
@@ -66,6 +64,10 @@ export default function Home() {
             <DqeForm />
           </TabsContent>
         </Tabs>
+        
+        <div className="mt-16">
+          <AppSummary />
+        </div>
       </div>
       <footer className="w-full text-center mt-16">
         <p className="text-sm text-muted-foreground">
