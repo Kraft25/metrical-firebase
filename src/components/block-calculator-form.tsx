@@ -228,6 +228,7 @@ export function BlockCalculatorForm() {
                                     )}
                                 />
                             </div>
+                             <Separator className="my-4"/>
                              <div className="grid grid-cols-2 gap-4 items-center">
                                 <MemoizedSubTotal control={form.control} index={index} />
                                 <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
@@ -258,7 +259,7 @@ export function BlockCalculatorForm() {
                         <CardTitle>Référence de Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² (pour des parpaings de 20x20x40 cm avec joint).</p>
+                        <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² (pour des parpaings de 20x40 cm avec joint).</p>
                     </CardContent>
                 </Card>
                  {calculationResult && (
@@ -312,3 +313,5 @@ export function BlockCalculatorForm() {
     </Form>
   );
 }
+
+    
