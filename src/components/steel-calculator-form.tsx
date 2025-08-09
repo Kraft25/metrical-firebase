@@ -287,11 +287,7 @@ export function SteelCalculatorForm() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            ouvrages: [
-                { name: "Poutre Principale", type: 'poutre', shape: 'rectangulaire', length: 6, width: 0.25, height: 0.4, quantity: 1, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.20 }, coating: 0.025 },
-                { name: "Poteaux Rect.", type: 'poteau', shape: 'rectangulaire', length: 3, width: 0.3, height: 0.3, quantity: 4, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: "etrier", diameter: "6", spacing: 0.15 }, coating: 0.025 },
-                { name: "Poteaux Circ.", type: 'poteau', shape: 'circulaire', length: 3, diameter: 0.35, quantity: 2, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.15 }, coating: 0.025 },
-            ]
+            ouvrages: []
         },
     });
 
@@ -335,7 +331,7 @@ export function SteelCalculatorForm() {
                     </div>
 
                     <div className="lg:col-span-1 space-y-6">
-                        {calculationResult && (
+                        {calculationResult && calculationResult.totalWeight > 0 && (
                             <Card className="bg-accent/10 border-accent shadow-xl sticky top-8">
                                 <CardHeader><CardTitle className="text-accent-foreground text-2xl">Récapitulatif Total</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">

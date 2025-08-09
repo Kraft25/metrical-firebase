@@ -82,10 +82,7 @@ export function BlockCalculatorForm() {
             blockThickness: 0.20,
             mortarDosage: "300",
             jointThickness: 0.015,
-            components: [
-                { name: "Mur Principal", length: 10, height: 2.5 },
-                { name: "Façade", length: 8, height: 2.5 },
-            ]
+            components: []
         },
     });
 

@@ -42,10 +42,7 @@ export function WaterproofingCalculatorForm() {
         defaultValues: {
             consumption: 1.5, // kg/m²/couche
             layers: 2,
-            components: [
-                { name: "Fondations", area: 50 },
-                { name: "Murs enterrés", area: 30 },
-            ]
+            components: []
         },
     });
 

@@ -116,7 +116,7 @@ const MemoizedSubTotal = ({ componentData }: { componentData: z.infer<typeof com
   );
 };
 
-const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null }) => {
+const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedComponentsForOuvrage }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null, watchedComponentsForOuvrage: any[] }) => {
     const { control } = form;
     const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
         control,
@@ -124,7 +124,6 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
     });
     
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
-    const watchedComponents = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components`});
     
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
     const dosageName = dosageInfo ? dosageInfo.name : 'Dosage non défini';
@@ -173,7 +172,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                         />
 
                         {componentFields.map((componentField, componentIndex) => {
-                          const watchedComponent = watchedComponents?.[componentIndex];
+                          const watchedComponent = watchedComponentsForOuvrage?.[componentIndex];
                           if (!watchedComponent) return null;
                           const shape = watchedComponent.shape || 'rectangular';
 
@@ -250,21 +249,7 @@ export function CalculatorForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ouvrages: [
-        {
-          dosage: 350,
-          components: [
-            { name: 'Poteaux (cylindriques)', shape: 'cylindrical', diameter: 0.3, height: 3, quantity: 4 },
-            { name: 'Poutres (rectangulaires)', shape: 'rectangular', length: 5, width: 0.2, height: 0.3, quantity: 2 },
-          ]
-        },
-        {
-          dosage: 300,
-          components: [
-            { name: 'Dallage', shape: 'rectangular', length: 10, width: 8, height: 0.12, quantity: 1 },
-          ]
-        },
-      ],
+      ouvrages: [],
     },
   });
 
@@ -336,6 +321,7 @@ export function CalculatorForm() {
     };
   }, [watchedForm]);
 
+  const watchedOuvragesComponents = useWatch({ control: form.control, name: 'ouvrages' })?.map(o => o.components);
 
   return (
     <Form {...form}>
@@ -350,6 +336,7 @@ export function CalculatorForm() {
                             ouvrageIndex={ouvrageIndex}
                             removeOuvrage={remove}
                             dosageResult={calculationResult?.byDosage[ouvrageIndex] || null}
+                            watchedComponentsForOuvrage={watchedOuvragesComponents?.[ouvrageIndex] || []}
                         />
                     ))}
                 </Accordion>

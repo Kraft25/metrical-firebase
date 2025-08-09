@@ -76,10 +76,7 @@ export function PlasterCalculatorForm() {
         defaultValues: {
             thickness: 0.015,
             dosage: "300",
-            components: [
-                { name: "Mur Salon", length: 12, height: 2.5 },
-                { name: "Mur Chambre", length: 8, height: 2.5 },
-            ]
+            components: []
         },
     });
 
