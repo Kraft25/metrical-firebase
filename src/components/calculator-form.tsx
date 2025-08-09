@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -102,17 +102,16 @@ const calculateComponentVolume = (component: z.infer<typeof componentSchema>): n
 
 const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: Control<FormValues>, ouvrageIndex: number, componentIndex: number }) => {
   const data = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components.${componentIndex}` });
-  const [subtotal, setSubtotal] = useState(0);
 
-  useEffect(() => {
-    setSubtotal(calculateComponentVolume(data));
+  const subtotal = useMemo(() => {
+    return calculateComponentVolume(data);
   }, [data]);
 
 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
       <FormLabel className="text-muted-foreground">Sous-Total Volume</FormLabel>
-      <div className="flex items-center justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
+      <div className="flex items-center justify-start font-bold text-lg h-11 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(3)} m³
       </div>
     </div>
@@ -202,7 +201,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                   )}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 items-end">
                                 {shape === 'rectangular' ? (
                                   <>
                                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
@@ -213,10 +212,10 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                 )}
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
                             </div>
                             <Separator />
-                             <div className="flex items-center justify-between">
-                                <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
+                             <div className="flex items-center justify-end">
                                 <Button type="button" variant="destructive" size="sm" onClick={() => removeComponent(componentIndex)}>
                                     <Trash2 className="h-4 w-4 mr-2" /> Supprimer
                                 </Button>
@@ -274,15 +273,12 @@ export function CalculatorForm() {
     name: 'ouvrages',
   });
   
-  const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
-  
   const watchedForm = useWatch({ control: form.control });
 
-  useEffect(() => {
+  const calculationResult = useMemo(() => {
     const values = watchedForm as FormValues;
     if (!values.ouvrages) {
-        setCalculationResult(null);
-        return;
+        return null;
     }
     let totalVolume = 0;
     const byDosage: (DosageResult | null)[] = [];
@@ -327,11 +323,11 @@ export function CalculatorForm() {
         return acc;
     }, { cement: 0, sand: 0, gravel: 0, water: 0 });
 
-    setCalculationResult({
+    return {
         totalVolume,
         totalMaterials,
         byDosage,
-    });
+    };
   }, [watchedForm]);
 
 
@@ -378,9 +374,18 @@ export function CalculatorForm() {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M5 8.5A2.5 2.5 0 0 1 7.5 6h9A2.5 2.5 0 0 1 19 8.5v7a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 15.5v-7Z"/><path d="M8 6.5v9"/></svg>
                                     <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.cement}</span> sacs de ciment (50kg)</p>
                                 </div>
-                                <div className="flex items-center gap-3"> <Sprout className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.sand.toFixed(2)}</span> m³ de sable</p></div>
-                                <div className="flex items-center gap-3"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.gravel.toFixed(2)}</span> m³ de gravier</p> </div>
-                                <div className="flex items-center gap-3"> <Droplets className="h-5 w-5 text-primary" /> <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.water.toFixed(0)}</span> litres d'eau</p> </div>
+                                <div className="flex items-center gap-3">
+                                    <Sprout className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.sand.toFixed(2)}</span> m³ de sable</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.gravel.toFixed(2)}</span> m³ de gravier</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Droplets className="h-5 w-5 text-primary" />
+                                    <p><span className="font-bold text-xl text-foreground">{calculationResult.totalMaterials.water.toFixed(0)}</span> litres d'eau</p>
+                                </div>
                             </div>
                             
                              <CardDescription className="pt-4 text-xs">

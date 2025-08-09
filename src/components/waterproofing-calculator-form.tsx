@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from 'react';
-import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { Ruler, PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
+import { PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
 
 const surfaceComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),

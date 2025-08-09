@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { Ruler, PlusCircle, Trash2, Building, Hash, GitCommitHorizontal, Circle, Square } from 'lucide-react';
+import { PlusCircle, Trash2, Building, GitCommitHorizontal, Circle, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { cn } from '@/lib/utils';
 
 const steelDiameters: { [key: string]: { weightPerMeter: number } } = {
     '6': { weightPerMeter: 0.222 },
@@ -114,7 +113,7 @@ const calculateSteel = (values: FormValues | undefined) => {
         if (ouvrage.shape === 'circulaire' && ouvrage.diameter) {
              const diameterMinusCoating = ouvrage.diameter - 2 * ouvrage.coating;
              singleTransversalLength = Math.PI * diameterMinusCoating; // Circonférence de l'étrier circulaire
-        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && (ouvrage.type === 'semelle' || ouvrage.height)) {
+        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && (ouvrage.height || ouvrage.type === 'semelle')) {
             const widthMinusCoating = ouvrage.width - 2 * ouvrage.coating;
             const heightMinusCoating = (ouvrage.height || 0) - 2 * ouvrage.coating;
             if (ouvrage.transversalBars.type === 'etrier') {
@@ -154,8 +153,9 @@ const calculateSteel = (values: FormValues | undefined) => {
 };
 
 function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, index: number, remove: (index: number) => void, ouvrageResult: OuvrageResult | null }) {
+    const {control, setValue} = form;
     const ouvrage = useWatch({
-        control: form.control,
+        control,
         name: `ouvrages.${index}`
     });
 
@@ -181,14 +181,14 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                 <div className="border-t p-6 space-y-6">
                     {/* Infos générales */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name={`ouvrages.${index}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Poutre RDC" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                        <FormField control={form.control} name={`ouvrages.${index}.type`} render={({ field }) => (
+                        <FormField control={control} name={`ouvrages.${index}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Poutre RDC" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${index}.type`} render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Type d'Ouvrage</FormLabel>
                                 <Select onValueChange={(value) => {
                                     field.onChange(value);
                                     if (value !== 'poteau') {
-                                        form.setValue(`ouvrages.${index}.shape`, 'rectangulaire');
+                                        setValue(`ouvrages.${index}.shape`, 'rectangulaire');
                                     }
                                 }} defaultValue={field.value}>
                                     <FormControl><SelectTrigger className="text-base h-11"><SelectValue/></SelectTrigger></FormControl>
@@ -204,7 +204,7 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                     
                     {ouvrage.type === 'poteau' && (
                         <FormField
-                        control={form.control}
+                        control={control}
                         name={`ouvrages.${index}.shape`}
                         render={({ field }) => (
                             <FormItem>
@@ -225,16 +225,16 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                     )}
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
-                        <FormField control={form.control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long./Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long./Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
                         {ouvrage.shape === 'rectangulaire' ? (
                             <>
-                                <FormField control={form.control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                {ouvrage.type !== 'semelle' && <FormField control={form.control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut./Ép. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>}
+                                <FormField control={control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                {ouvrage.type !== 'semelle' && <FormField control={control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut./Ép. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>}
                             </>
                         ) : (
-                            <FormField control={form.control} name={`ouvrages.${index}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                            <FormField control={control} name={`ouvrages.${index}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
                         )}
-                        <FormField control={form.control} name={`ouvrages.${index}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl> </FormItem> )}/>
+                        <FormField control={control} name={`ouvrages.${index}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl> </FormItem> )}/>
                     </div>
 
                     <Separator/>
@@ -242,10 +242,10 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                     {/* Aciers Longitudinaux */}
                     <h4 className="font-semibold text-lg">Aciers Longitudinaux</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.diameter`} render={({ field }) => (
+                        <FormField control={control} name={`ouvrages.${index}.longitudinalBars.diameter`} render={({ field }) => (
                             <FormItem><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
                         )}/>
-                        <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.count`} render={({ field }) => (
+                        <FormField control={control} name={`ouvrages.${index}.longitudinalBars.count`} render={({ field }) => (
                             <FormItem><FormLabel>Nombre de barres</FormLabel><FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl></FormItem>
                         )}/>
                     </div>
@@ -253,16 +253,16 @@ function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, i
                     {/* Aciers Transversaux */}
                     <h4 className="font-semibold text-lg">Aciers Transversaux</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                            <FormField control={form.control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
+                            <FormField control={control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
                             <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={ouvrage.shape === 'circulaire'}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
                         )}/>
-                        <FormField control={form.control} name={`ouvrages.${index}.transversalBars.diameter`} render={({ field }) => (
+                        <FormField control={control} name={`ouvrages.${index}.transversalBars.diameter`} render={({ field }) => (
                             <FormItem className="sm:col-span-1"><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
                         )}/>
-                        <FormField control={form.control} name={`ouvrages.${index}.transversalBars.spacing`} render={({ field }) => (
+                        <FormField control={control} name={`ouvrages.${index}.transversalBars.spacing`} render={({ field }) => (
                             <FormItem className="sm:col-span-1"><FormLabel>Espacement (m)</FormLabel><FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl></FormItem>
                         )}/>
-                            <FormField control={form.control} name={`ouvrages.${index}.coating`} render={({ field }) => (
+                            <FormField control={control} name={`ouvrages.${index}.coating`} render={({ field }) => (
                             <FormItem className="sm:col-span-1"><FormLabel>Enrobage (m)</FormLabel><FormControl><Input {...field} type="number" step="0.005" className="h-11"/></FormControl></FormItem>
                         )}/>
                     </div>
@@ -294,19 +294,16 @@ export function SteelCalculatorForm() {
         },
     });
 
+    const { control } = form;
+
     const { fields, append, remove } = useFieldArray({
-        control: form.control,
+        control,
         name: 'ouvrages',
     });
     
-    const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
+    const watchedForm = useWatch({ control });
 
-    const watchedForm = useWatch({ control: form.control });
-
-    useEffect(() => {
-        const result = calculateSteel(watchedForm as FormValues);
-        setCalculationResult(result);
-    }, [watchedForm]);
+    const calculationResult = useMemo(() => calculateSteel(watchedForm as FormValues), [watchedForm]);
 
     return (
         <Form {...form}>
