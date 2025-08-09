@@ -20,6 +20,7 @@ const steelDiameters: { [key: string]: { weightPerMeter: number } } = {
     '14': { weightPerMeter: 1.21 },
     '16': { weightPerMeter: 1.58 },
 };
+const COMMERCIAL_BAR_LENGTH = 12; // 12 meters
 
 const ouvrageSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -52,13 +53,13 @@ type OuvrageResult = {
 };
 type CalculationResult = {
     totalWeight: number;
-    weightByDiameter: { [key: string]: number };
+    weightByDiameter: { [key: string]: { weight: number, bars: number } };
     ouvrageResults: (OuvrageResult | null)[];
 } | null;
 
 const calculateSteel = (values: FormValues) => {
     let totalWeight = 0;
-    const weightByDiameter: { [key: string]: number } = {};
+    const weightByDiameter: { [key: string]: { weight: number, length: number, bars: number } } = {};
     
     const ouvrageResults = values.ouvrages.map(ouvrage => {
         if (!steelDiameters[ouvrage.longitudinalBars.diameter] || !steelDiameters[ouvrage.transversalBars.diameter]) {
@@ -71,8 +72,9 @@ const calculateSteel = (values: FormValues) => {
         const longiTotalLength = ouvrage.length * ouvrage.longitudinalBars.count * ouvrage.quantity;
         const longitudinalWeight = longiTotalLength * longiWeightPerMeter;
 
-        if (!weightByDiameter[longiDiameter]) weightByDiameter[longiDiameter] = 0;
-        weightByDiameter[longiDiameter] += longitudinalWeight;
+        if (!weightByDiameter[longiDiameter]) weightByDiameter[longiDiameter] = { weight: 0, length: 0, bars: 0 };
+        weightByDiameter[longiDiameter].weight += longitudinalWeight;
+        weightByDiameter[longiDiameter].length += longiTotalLength;
         
         // Calcul Aciers Transversaux (Cadres/Étriers/Épingles)
         const transDiameter = ouvrage.transversalBars.diameter;
@@ -94,8 +96,9 @@ const calculateSteel = (values: FormValues) => {
         const transTotalLength = singleTransversalLength * transversalCount * ouvrage.quantity;
         const transversalWeight = transTotalLength * transWeightPerMeter;
 
-        if (!weightByDiameter[transDiameter]) weightByDiameter[transDiameter] = 0;
-        weightByDiameter[transDiameter] += transversalWeight;
+        if (!weightByDiameter[transDiameter]) weightByDiameter[transDiameter] = { weight: 0, length: 0, bars: 0 };
+        weightByDiameter[transDiameter].weight += transversalWeight;
+        weightByDiameter[transDiameter].length += transTotalLength;
 
         const totalOuvrageWeight = longitudinalWeight + transversalWeight;
         totalWeight += totalOuvrageWeight;
@@ -106,8 +109,16 @@ const calculateSteel = (values: FormValues) => {
             totalWeight: totalOuvrageWeight
         };
     });
+    
+    const finalWeightByDiameter: CalculationResult['weightByDiameter'] = {};
+    for (const diameter in weightByDiameter) {
+        finalWeightByDiameter[diameter] = {
+            weight: weightByDiameter[diameter].weight,
+            bars: Math.ceil(weightByDiameter[diameter].length / COMMERCIAL_BAR_LENGTH)
+        };
+    }
 
-    return { totalWeight, weightByDiameter, ouvrageResults };
+    return { totalWeight, weightByDiameter: finalWeightByDiameter, ouvrageResults };
 };
 
 
@@ -129,16 +140,8 @@ export function SteelCalculatorForm() {
     
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const onSubmit = (values: FormValues) => {
-        const result = calculateSteel(values);
-        setCalculationResult(result);
-    };
-
-    useEffect(() => {
-        onSubmit(form.getValues());
-    }, []);
-
     const watchedForm = useWatch({ control: form.control });
+
     useEffect(() => {
         const result = calculateSteel(watchedForm as FormValues);
         setCalculationResult(result);
@@ -146,7 +149,7 @@ export function SteelCalculatorForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
                         {fields.map((field, index) => (
@@ -237,13 +240,16 @@ export function SteelCalculatorForm() {
                                     <Separator/>
                                     <h4 className="font-semibold text-lg">Détail par diamètre :</h4>
                                     <div className="space-y-2">
-                                        {Object.entries(calculationResult.weightByDiameter).sort(([a],[b]) => Number(a) - Number(b)).map(([diameter, weight]) => (
-                                            <div key={diameter} className="flex items-center gap-3 justify-between">
+                                        {Object.entries(calculationResult.weightByDiameter).sort(([a],[b]) => Number(a) - Number(b)).map(([diameter, data]) => (
+                                            <div key={diameter} className="flex items-start gap-3 justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <GitCommitHorizontal className="h-5 w-5 text-primary" />
+                                                    <GitCommitHorizontal className="h-5 w-5 text-primary mt-1" />
                                                     <span>Acier HA {diameter}</span>
                                                 </div>
-                                                <span className="font-bold text-xl text-foreground">{weight.toFixed(2)} kg</span>
+                                                <div className="text-right">
+                                                    <p className="font-bold text-xl text-foreground">{data.weight.toFixed(2)} kg</p>
+                                                    <p className="text-sm text-muted-foreground">{data.bars} barre(s) de 12m</p>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -257,5 +263,3 @@ export function SteelCalculatorForm() {
         </Form>
     );
 }
-
-    
