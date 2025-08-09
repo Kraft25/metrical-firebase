@@ -238,51 +238,45 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             </div>
             
             <div className="lg:col-span-1 space-y-6">
-                <Card className="shadow-lg sticky top-8">
+                <Card className="shadow-lg sticky top-8 bg-accent/10 border-accent">
                     <CardHeader>
-                        <CardTitle>Aide au Calcul</CardTitle>
+                        <CardTitle className="text-accent-foreground">Résultat du Calcul</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                         {calculationResult && calculationResult.blocksPerM2 > 0 ? (
-                           <p className="text-sm text-muted-foreground">
-                             Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
+                    <CardContent className="space-y-4">
+                        {calculationResult && calculationResult.blocksPerM2 > 0 ? (
+                           <p className="text-sm text-muted-foreground border-b border-accent pb-4">
+                             Aide: il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
                          ) : (
                             <p className="text-sm text-muted-foreground">
                                 Entrez les dimensions des blocs pour voir les estimations.
                             </p>
                          )}
+                        
+                        {calculationResult && calculationResult.totalSurface > 0 && (
+                            <div className="space-y-4 pt-2">
+                                <div className="flex items-center gap-4">
+                                    <AreaChart className="h-10 w-10 text-primary" />
+                                    <div>
+                                        <p className="text-4xl font-bold text-foreground">
+                                        {calculationResult.totalSurface.toFixed(2)} m²
+                                        </p>
+                                        <p className="text-muted-foreground mt-1">Surface totale du mur</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 pt-4">
+                                    <Ungroup className="h-10 w-10 text-primary" />
+                                    <div>
+                                        <p className="text-4xl font-bold text-foreground">
+                                        {calculationResult.blocksNeeded}
+                                        </p>
+                                        <p className="text-muted-foreground mt-1">Blocs nécessaires</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
-                 {calculationResult && calculationResult.totalSurface > 0 && (
-                    <Card className="bg-accent/10 border-accent shadow-xl sticky top-48">
-                    <CardHeader>
-                        <CardTitle className="text-accent-foreground text-2xl">
-                        Résultat du Calcul
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <AreaChart className="h-10 w-10 text-primary" />
-                            <div>
-                                <p className="text-4xl font-bold text-foreground">
-                                {calculationResult.totalSurface.toFixed(2)} m²
-                                </p>
-                                <p className="text-muted-foreground mt-1">Surface totale du mur</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 pt-4">
-                            <Ungroup className="h-10 w-10 text-primary" />
-                            <div>
-                                <p className="text-4xl font-bold text-foreground">
-                                {calculationResult.blocksNeeded}
-                                </p>
-                                <p className="text-muted-foreground mt-1">Blocs nécessaires</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                    </Card>
-                )}
             </div>
         </div>
       </form>
