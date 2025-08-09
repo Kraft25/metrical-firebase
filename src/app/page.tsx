@@ -91,9 +91,9 @@ export default function Home() {
           <AppSummary />
         </div>
       </div>
-      <footer className="w-full text-center mt-16">
+      <footer className="w-full text-center mt-16 max-w-3xl mx-auto">
         <p className="text-sm text-muted-foreground">
-          Créé par Daniel HOBA Etudiant en genie civil
+          Développée par Daniel Hoba, étudiant en génie civil, cette application vise à optimiser les calculs et la gestion de projets BTP pour les professionnels et les étudiants.
         </p>
       </footer>
     </main>
