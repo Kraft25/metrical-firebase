@@ -1,3 +1,4 @@
+
 import { CalculatorForm } from '@/components/calculator-form';
 import { BlockCalculatorForm } from '@/components/block-calculator-form';
 import { PlasterCalculatorForm } from '@/components/plaster-calculator-form';
@@ -30,7 +31,7 @@ export default function Home() {
               <Calculator className="mr-2" /> Calcul de Volume
             </TabsTrigger>
             <TabsTrigger value="blocks">
-              <Ungroup className="mr-2" /> Calcul de Parpaings
+              <Ungroup className="mr-2" /> Calcul Maçonnerie
             </TabsTrigger>
             <TabsTrigger value="plaster">
               <Layers className="mr-2" /> Calcul d'Enduit

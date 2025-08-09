@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -26,8 +27,9 @@ const wallComponentSchema = z.object({
 });
 
 const formSchema = z.object({
-  blockLength: z.coerce.number().positive("La longueur du parpaing est requise."),
-  blockHeight: z.coerce.number().positive("La hauteur du parpaing est requise."),
+  blockLength: z.coerce.number().positive("La longueur du bloc est requise."),
+  blockHeight: z.coerce.number().positive("La hauteur du bloc est requise."),
+  blockThickness: z.coerce.number().positive("L'épaisseur du bloc est requise."),
   mortarDosage: z.enum(["250", "300", "350"]),
   jointThickness: z.coerce.number().positive("L'épaisseur est requise."),
   components: z.array(wallComponentSchema)
@@ -77,8 +79,9 @@ export function BlockCalculatorForm() {
         defaultValues: {
             blockLength: 0.40,
             blockHeight: 0.20,
+            blockThickness: 0.20,
             mortarDosage: "300",
-            jointThickness: 0.015, // 1.5 cm
+            jointThickness: 0.015,
             components: [
                 { name: "Mur Principal", length: 10, height: 2.5 },
                 { name: "Façade", length: 8, height: 2.5 },
@@ -97,8 +100,8 @@ export function BlockCalculatorForm() {
 
     useEffect(() => {
         const calculate = (values: FormValues) => {
-            const { components, mortarDosage, jointThickness, blockLength, blockHeight } = values;
-            if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight ) {
+            const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
+            if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness ) {
                 setCalculationResult(null);
                 return;
             }
@@ -112,8 +115,29 @@ export function BlockCalculatorForm() {
 
             // Mortar Calculation
             const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
-            const MORTAR_VOLUME_PER_M2 = 0.01; // Estimation pour parpaings de 20 avec joint de 1.5cm
-            const mortarVolume = totalSurface * MORTAR_VOLUME_PER_M2 * (jointThickness / 0.015);
+            // Volume of mortar per block = (L*H*T) - (l*h*t) ; but simpler to estimate volume of joints
+            // Horizontal joint volume = Surface * joint_thickness
+            // Vertical joint volume = (Total Height / (block_height+joint_thickness)) * num_vertical_joints_per_row * joint_thickness * block_thickness
+            // Let's use a simpler, more common estimation: Volume of mortar is the total volume of joints for the whole surface.
+            // Volume of one block with mortar: (L+j)*(H+j)*T
+            // Volume of one block without mortar: L*H*T
+            // Mortar per block = (L+j)(H+j)T - LHT is not right because thickness is for the whole wall.
+            // Correct approach:
+            const totalLength = components.reduce((acc, comp) => acc + comp.length, 0);
+            const numBlocksHigh = Math.ceil(components.reduce((acc, comp) => Math.max(acc, comp.height), 0) / (blockHeight + jointThickness));
+            
+            // Mortar volume = Total volume of wall - Total volume of blocks
+            const totalWallVolume = totalSurface * blockThickness;
+            const singleBlockVolume = blockLength * blockHeight * blockThickness;
+            const totalBlocksVolume = blocksNeeded * singleBlockVolume;
+            // This above is incorrect as it doesnt account for joints.
+
+            // Let's calculate joint volume directly
+            // Mortar volume = (Total surface area - (Area of blocks)) * block thickness
+            // Area of all blocks = blocksNeeded * blockLength * blockHeight
+            // Mortar volume for joints = totalSurface * jointThickness
+            const mortarVolume = totalSurface * jointThickness * (1 + blockHeight / blockLength); // Simplified formula for horizontal and vertical joints
+            
             const cementKg = mortarVolume * mortarDosageInfo.cement;
             const cementBags = Math.ceil(cementKg / 50);
             const sandM3 = mortarVolume * mortarDosageInfo.sand;
@@ -142,13 +166,13 @@ export function BlockCalculatorForm() {
                     <CardHeader>
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
                         <FormField
                             control={form.control}
                             name="blockLength"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Long. parpaing (m)</FormLabel>
+                                <FormLabel>Long. bloc (m)</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                     <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
@@ -163,10 +187,25 @@ export function BlockCalculatorForm() {
                             name="blockHeight"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Haut. parpaing (m)</FormLabel>
+                                <FormLabel>Haut. bloc (m)</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                     <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
+                                    </div>
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="blockThickness"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Épais. bloc (m)</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    <Square className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                                     <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
@@ -316,7 +355,7 @@ export function BlockCalculatorForm() {
                     <CardContent>
                          {calculationResult && (
                            <p className="text-sm text-muted-foreground">
-                             Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> parpaings par m².
+                             Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
                          )}
                     </CardContent>
@@ -344,7 +383,7 @@ export function BlockCalculatorForm() {
                                 <p className="text-4xl font-bold text-foreground">
                                 {calculationResult.blocksNeeded}
                                 </p>
-                                <p className="text-muted-foreground mt-1">Parpaings nécessaires</p>
+                                <p className="text-muted-foreground mt-1">Blocs nécessaires</p>
                             </div>
                         </div>
                     </CardContent>
