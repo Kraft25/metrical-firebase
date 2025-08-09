@@ -152,10 +152,6 @@ export default function Home() {
           </TabsContent>
         </Tabs>
 
-        <div className="mt-16">
-          <AppSummary />
-        </div>
-
         <section className="mt-16 w-full max-w-3xl mx-auto">
             <Card className="shadow-lg">
                 <CardHeader>
@@ -224,6 +220,10 @@ export default function Home() {
                 </div>
             )}
         </section>
+
+        <div className="mt-16">
+          <AppSummary />
+        </div>
 
       </div>
       <footer className="w-full text-center mt-16 max-w-3xl mx-auto">
