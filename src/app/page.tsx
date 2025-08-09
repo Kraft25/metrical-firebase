@@ -3,7 +3,8 @@
 
 import { useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
-import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppSummary } from '@/components/app-summary';
 import type { FormValues as VolumeFormValues } from '@/components/calculator-form';
@@ -11,6 +12,9 @@ import type { FormValues as BlockFormValues } from '@/components/block-calculato
 import type { FormValues as PlasterFormValues } from '@/components/plaster-calculator-form';
 import type { FormValues as WaterproofingFormValues } from '@/components/waterproofing-calculator-form';
 import type { FormValues as SteelFormValues } from '@/components/steel-calculator-form';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 const LoadingComponent = () => (
   <div className="flex items-center justify-center p-16">
@@ -63,6 +67,15 @@ export default function Home() {
   const plasterForm = useForm<PlasterFormValues>({ defaultValues: defaultValues.plaster });
   const waterproofingForm = useForm<WaterproofingFormValues>({ defaultValues: defaultValues.waterproofing });
   const steelForm = useForm<SteelFormValues>({ defaultValues: defaultValues.steel });
+
+  const [feedback, setFeedback] = useState('');
+
+  const handleSendFeedback = () => {
+    const subject = "Suggestion pour l'application Métrical";
+    const body = encodeURIComponent(feedback);
+    window.location.href = `mailto:danielhoba20@gmail.com?subject=${subject}&body=${body}`;
+  };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 sm:p-8 lg:p-16 bg-background">
@@ -123,6 +136,38 @@ export default function Home() {
         <div className="mt-16">
           <AppSummary />
         </div>
+
+        <section className="mt-16 w-full max-w-3xl mx-auto">
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <div className="flex items-center gap-4">
+                        <MessageSquare className="h-8 w-8 text-primary" />
+                        <div>
+                            <CardTitle>Suggestions & Améliorations</CardTitle>
+                            <CardDescription>
+                                Votre avis est précieux. Laissez un commentaire pour nous aider à améliorer l'application.
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Textarea
+                        placeholder="Écrivez votre suggestion ici..."
+                        rows={5}
+                        value={feedback}
+                        onChange={(e) => setFeedback(e.target.value)}
+                        className="text-base"
+                    />
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handleSendFeedback} disabled={!feedback.trim()} className="w-full sm:w-auto ml-auto">
+                        <Send className="mr-2 h-4 w-4" />
+                        Envoyer par e-mail
+                    </Button>
+                </CardFooter>
+            </Card>
+        </section>
+
       </div>
       <footer className="w-full text-center mt-16 max-w-3xl mx-auto">
         <p className="text-sm text-muted-foreground">
