@@ -43,7 +43,6 @@ const defaultValues = {
     blockLength: 0.4,
     blockHeight: 0.2,
     blockThickness: 0.2,
-    mortarDosage: "300" as const,
     jointThickness: 0.015,
     components: []
   },
@@ -134,5 +133,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

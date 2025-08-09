@@ -29,28 +29,16 @@ export const formSchema = z.object({
   blockLength: z.coerce.number().positive("La longueur du bloc est requise."),
   blockHeight: z.coerce.number().positive("La hauteur du bloc est requise."),
   blockThickness: z.coerce.number().positive("L'épaisseur du bloc est requise."),
-  mortarDosage: z.enum(["250", "300", "350"]),
   jointThickness: z.coerce.number().min(0, "L'épaisseur doit être positive ou nulle."),
   components: z.array(wallComponentSchema)
 });
 
 export type FormValues = z.infer<typeof formSchema>;
 
-const mortarDosages = {
-    "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
-    "300": { name: "Mortier standard (300 kg/m³)", cement: 300, sand: 1.0 },
-    "350": { name: "Mortier riche (300 kg/m³)", cement: 350, sand: 0.95 },
-};
-
 type CalculationResult = {
     blocksNeeded: number;
     totalSurface: number;
     blocksPerM2: number;
-    mortar: {
-        volume: number;
-        cementBags: number;
-        sandM3: number;
-    }
 } | null;
 
 const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, index: number }) => {
@@ -85,7 +73,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
+        const { components, jointThickness, blockLength, blockHeight, blockThickness } = values;
 
         if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
             return null;
@@ -104,23 +92,11 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         }, 0);
         
         const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
-        
-        const mortarVolume = totalSurface * jointThickness;
-        
-        const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
-        const cementKg = mortarVolume * mortarDosageInfo.cement;
-        const cementBags = Math.ceil(cementKg / 50);
-        const sandM3 = mortarVolume * mortarDosageInfo.sand;
 
         return { 
             blocksNeeded: isNaN(blocksNeeded) ? 0 : blocksNeeded, 
             totalSurface,
             blocksPerM2: blocksPerM2,
-            mortar: {
-                volume: mortarVolume > 0 ? mortarVolume : 0,
-                cementBags: cementBags > 0 ? cementBags : 0,
-                sandM3: sandM3 > 0 ? sandM3 : 0
-            }
         };
     }, [watchedForm]);
 
@@ -133,7 +109,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <CardContent className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <FormField
                             control={form.control}
                             name="blockLength"
@@ -191,27 +167,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                     <Input {...field} type="number" step="0.001" placeholder="0.015" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="mortarDosage"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Dosage mortier</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                                    <FormControl>
-                                    <SelectTrigger className="text-base h-11">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {Object.entries(mortarDosages).map(([key, value]) => (
-                                        <SelectItem key={key} value={key} className="text-base">{value.name.split('(')[0]}</SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
                                 </FormItem>
                             )}
                         />
@@ -339,18 +294,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                 </p>
                                 <p className="text-muted-foreground mt-1">Blocs nécessaires</p>
                             </div>
-                        </div>
-                        <div className="space-y-3 pt-4">
-                            <h4 className="font-semibold text-lg">Mortier de pose :</h4>
-                            <div className="flex items-center gap-3">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
-                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Sprout className="h-5 w-5 text-primary" />
-                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
-                            </div>
-                            <p className="text-xs text-muted-foreground pt-2">Volume de mortier estimé: {calculationResult.mortar.volume.toFixed(3)} m³. Prévoyez une marge de 10%.</p>
                         </div>
                     </CardContent>
                     </Card>
