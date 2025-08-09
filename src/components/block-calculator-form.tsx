@@ -172,6 +172,22 @@ export function BlockCalculatorForm() {
                             )}
                         />
                     </CardContent>
+                    {calculationResult && (
+                    <CardFooter className="bg-muted/30 border-t p-4 flex-col items-start gap-2">
+                         <h4 className="font-semibold text-lg">Mortier de pose :</h4>
+                         <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
+                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Sprout className="h-5 w-5 text-primary" />
+                                <p><span className="font-bold text-lg text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground pt-2">Note: Prévoyez une marge de 5-10% pour les pertes.</p>
+                    </CardFooter>
+                    )}
                 </Card>
 
                 <Card className="shadow-lg">
@@ -288,22 +304,6 @@ export function BlockCalculatorForm() {
                                 <p className="text-muted-foreground mt-1">Parpaings nécessaires</p>
                             </div>
                         </div>
-                        
-                        <Separator />
-
-                        <h4 className="font-semibold text-lg pt-2">Mortier de pose :</h4>
-                         <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M12 22c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8Z"/></svg>
-                                <p><span className="font-bold text-xl text-foreground">{calculationResult.mortar.cementBags}</span> sacs de ciment (50kg)</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Sprout className="h-5 w-5 text-primary" />
-                                <p><span className="font-bold text-xl text-foreground">{calculationResult.mortar.sandM3.toFixed(2)}</span> m³ de sable</p>
-                            </div>
-                        </div>
-
-                         <p className="text-xs text-muted-foreground pt-2">Note: Prévoyez une marge de 5-10% pour les pertes.</p>
                     </CardContent>
                     </Card>
                 )}
@@ -313,5 +313,3 @@ export function BlockCalculatorForm() {
     </Form>
   );
 }
-
-    
