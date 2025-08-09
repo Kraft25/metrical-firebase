@@ -177,29 +177,34 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
 
                           return (
                           <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                                <FormField
-                                  control={control}
-                                  name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.shape`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Forme</FormLabel>
-                                      <FormControl>
-                                        <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
-                                          <ToggleGroupItem value="rectangular" className="gap-2 h-9">
-                                            <Square className="h-5 w-5"/> Rectangle
-                                          </ToggleGroupItem>
-                                          <ToggleGroupItem value="cylindrical" className="gap-2 h-9">
-                                            <Circle className="h-5 w-5"/> Cylindre
-                                          </ToggleGroupItem>
-                                        </ToggleGroup>
-                                      </FormControl>
-                                    </FormItem>
-                                  )}
-                                />
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                                    <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Fondation F1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                                    <FormField
+                                    control={control}
+                                    name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.shape`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Forme</FormLabel>
+                                        <FormControl>
+                                            <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
+                                            <ToggleGroupItem value="rectangular" className="gap-2 h-9">
+                                                <Square className="h-5 w-5"/> Rectangle
+                                            </ToggleGroupItem>
+                                            <ToggleGroupItem value="cylindrical" className="gap-2 h-9">
+                                                <Circle className="h-5 w-5"/> Cylindre
+                                            </ToggleGroupItem>
+                                            </ToggleGroup>
+                                        </FormControl>
+                                        </FormItem>
+                                    )}
+                                    />
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeComponent(componentIndex)} className="mt-8 text-destructive">
+                                    <Trash2 className="h-5 w-5" />
+                                </Button>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 items-end">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                                 {shape === 'rectangular' ? (
                                   <>
                                     <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
@@ -211,12 +216,6 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <MemoizedSubTotal componentData={watchedComponent} />
-                            </div>
-                            <Separator />
-                             <div className="flex items-center justify-end">
-                                <Button type="button" variant="destructive" size="sm" onClick={() => removeComponent(componentIndex)}>
-                                    <Trash2 className="h-4 w-4 mr-2" /> Supprimer
-                                </Button>
                             </div>
                           </div>
                         )})}
@@ -391,3 +390,5 @@ export function CalculatorForm({ form }: CalculatorFormProps) {
     </Form>
   );
 }
+
+    
