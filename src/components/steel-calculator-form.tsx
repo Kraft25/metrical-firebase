@@ -162,25 +162,21 @@ export function SteelCalculatorForm() {
                                 
                                 return (
                                 <AccordionItem key={field.id} value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
-                                     <div className="flex items-center">
-                                        <AccordionTrigger className="flex-1 p-4 sm:p-6 text-lg font-semibold hover:no-underline">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center gap-4 text-left">
-                                                    <span className="bg-primary/10 text-primary font-bold size-10 flex items-center justify-center rounded-full">
-                                                        #{index + 1}
-                                                    </span>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
-                                                        <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type}</p>
-                                                    </div>
+                                    <div className="flex items-center justify-between p-2 pr-4">
+                                        <AccordionTrigger className="flex-1 p-2 sm:p-4 text-lg font-semibold hover:no-underline">
+                                            <div className="flex items-center gap-4 text-left">
+                                                <span className="bg-primary/10 text-primary font-bold size-10 flex items-center justify-center rounded-full">
+                                                    #{index + 1}
+                                                </span>
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
+                                                    <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type}</p>
                                                 </div>
                                             </div>
                                         </AccordionTrigger>
-                                        <div className="p-2 pr-4">
-                                            <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
-                                                <Trash2 className="h-5 w-5"/>
-                                            </Button>
-                                        </div>
+                                        <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
+                                            <Trash2 className="h-5 w-5"/>
+                                        </Button>
                                     </div>
                                     <AccordionContent>
                                         <div className="border-t p-6 space-y-6">
@@ -294,3 +290,5 @@ export function SteelCalculatorForm() {
         </Form>
     );
 }
+
+    
