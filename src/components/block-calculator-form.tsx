@@ -30,7 +30,7 @@ export const formSchema = z.object({
   blockHeight: z.coerce.number().positive("La hauteur du bloc est requise."),
   blockThickness: z.coerce.number().positive("L'épaisseur du bloc est requise."),
   mortarDosage: z.enum(["250", "300", "350"]),
-  jointThickness: z.coerce.number().positive("L'épaisseur est requise."),
+  jointThickness: z.coerce.number().min(0, "L'épaisseur doit être positive ou nulle."),
   components: z.array(wallComponentSchema)
 });
 
@@ -95,11 +95,13 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
 
-        if (!blockLength || !blockHeight || !jointThickness) {
+        if (!blockLength || !blockHeight || !blockThickness ) {
             return null;
         }
 
-        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
+        const jThickness = jointThickness || 0;
+        const blocksPerM2 = 1 / ((blockLength + jThickness) * (blockHeight + jThickness));
+        
          if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
             return {
                 blocksNeeded: 0,
@@ -394,7 +396,5 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
-
-    
 
     
