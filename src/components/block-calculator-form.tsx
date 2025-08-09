@@ -15,9 +15,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Square } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -71,8 +70,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     const watchedForm = useWatch({ control: form.control });
 
     const calculationResult = useMemo(() => {
-        const values = watchedForm as FormValues;
-        const { components, blockLength, blockHeight } = values;
+        const { components, blockLength, blockHeight } = watchedForm as FormValues;
 
         if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
             return null;
@@ -95,7 +93,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         return { 
             blocksNeeded: isNaN(blocksNeeded) ? 0 : blocksNeeded, 
             totalSurface,
-            blocksPerM2: blocksPerM2,
+            blocksPerM2,
         };
     }, [watchedForm]);
 
@@ -118,7 +116,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                 <FormControl>
                                     <div className="relative">
                                     <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.40" className="pl-10 text-base h-11"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
                                 </FormItem>
@@ -133,7 +131,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                 <FormControl>
                                     <div className="relative">
                                     <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
                                 </FormItem>
@@ -148,7 +146,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                 <FormControl>
                                     <div className="relative">
                                     <Square className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                    <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
                                 </FormItem>
@@ -160,6 +158,9 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Composants du Mur</CardTitle>
+                        <CardDescription>
+                            Ajoutez les différents murs ou cloisons. La surface totale est calculée automatiquement.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {fields.map((field, index) => (
