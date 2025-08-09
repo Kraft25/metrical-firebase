@@ -39,7 +39,7 @@ export type FormValues = z.infer<typeof formSchema>;
 const mortarDosages = {
     "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
     "300": { name: "Mortier standard (300 kg/m³)", cement: 300, sand: 1.0 },
-    "350": { name: "Mortier riche (350 kg/m³)", cement: 350, sand: 0.95 },
+    "350": { name: "Mortier riche (300 kg/m³)", cement: 350, sand: 0.95 },
 };
 
 type CalculationResult = {
@@ -86,15 +86,20 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
+        
         if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness ) {
             return null;
         }
-        
+
         const totalSurface = components.reduce((acc, comp) => {
-            return acc + (comp.length * comp.height);
+            const length = Number(comp.length) || 0;
+            const height = Number(comp.height) || 0;
+            return acc + (length * height);
         }, 0);
 
-        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
+        const blocksPerM2 = (blockLength > 0 && blockHeight > 0 && jointThickness > 0) 
+            ? 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness))
+            : 0;
         
         if (totalSurface === 0) {
              return {
@@ -284,12 +289,12 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                     </CardContent>
                     <CardFooter>
                          {fields.length === 0 ? (
-                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: 'Nouveau composant', length: 0, height: 0 })}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Ajouter un composant
                             </Button>
                         ) : (
-                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
+                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: 'Nouveau composant', length: 0, height: 0 })}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Ajouter un autre composant
                             </Button>
@@ -304,7 +309,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                         <CardTitle>Aide au Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         {calculationResult ? (
+                         {calculationResult && calculationResult.blocksPerM2 > 0 ? (
                            <p className="text-sm text-muted-foreground">
                              Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> bloc(s) par m².
                            </p>
@@ -362,3 +367,5 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
     </Form>
   );
 }
+
+    
