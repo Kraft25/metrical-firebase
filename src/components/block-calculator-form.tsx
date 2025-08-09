@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Separator } from './ui/separator';
+import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -87,6 +87,12 @@ export function BlockCalculatorForm() {
                 { name: "Façade", length: 8, height: 2.5 },
             ]
         },
+    });
+
+    useFormPersistence({
+      control: form.control,
+      name: 'metrical_blockCalculator',
+      setValue: form.setValue,
     });
 
     const { fields, append, remove } = useFieldArray({

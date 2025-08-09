@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
+import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const surfaceComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -46,6 +47,12 @@ export function WaterproofingCalculatorForm() {
                 { name: "Murs enterrés", area: 30 },
             ]
         },
+    });
+
+    useFormPersistence({
+      control: form.control,
+      name: 'metrical_waterproofingCalculator',
+      setValue: form.setValue,
     });
 
     const { fields, append, remove } = useFieldArray({

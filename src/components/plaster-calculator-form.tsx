@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Ruler, PlusCircle, Trash2, Building, AreaChart, Layers, Sprout } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Separator } from './ui/separator';
+import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const wallComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -81,6 +81,12 @@ export function PlasterCalculatorForm() {
                 { name: "Mur Chambre", length: 8, height: 2.5 },
             ]
         },
+    });
+
+    useFormPersistence({
+      control: form.control,
+      name: 'metrical_plasterCalculator',
+      setValue: form.setValue,
     });
 
     const { fields, append, remove } = useFieldArray({

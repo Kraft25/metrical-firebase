@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Separator } from './ui/separator';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const componentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -172,7 +173,9 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                         />
 
                         {componentFields.map((componentField, componentIndex) => {
-                          const shape = watchedComponents[componentIndex]?.shape || 'rectangular';
+                          const watchedComponent = watchedComponents?.[componentIndex];
+                          if (!watchedComponent) return null;
+                          const shape = watchedComponent.shape || 'rectangular';
 
                           return (
                           <div key={componentField.id} className="bg-secondary/20 p-4 rounded-lg border space-y-4">
@@ -209,7 +212,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form
                                 )}
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut. (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
                                 <FormField control={control} name={`ouvrages.${ouvrageIndex}.components.${componentIndex}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="1" placeholder="1" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                                <MemoizedSubTotal componentData={watchedComponents[componentIndex]} />
+                                <MemoizedSubTotal componentData={watchedComponent} />
                             </div>
                             <Separator />
                              <div className="flex items-center justify-end">
@@ -263,6 +266,12 @@ export function CalculatorForm() {
         },
       ],
     },
+  });
+
+  useFormPersistence({
+    control: form.control,
+    name: 'metrical_volumeCalculator',
+    setValue: form.setValue,
   });
 
   const { fields, append, remove } = useFieldArray({

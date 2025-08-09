@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from './ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { useFormPersistence } from '@/hooks/use-form-persistence';
 
 const steelDiameters: { [key: string]: { weightPerMeter: number } } = {
     '6': { weightPerMeter: 0.222 },
@@ -292,6 +293,12 @@ export function SteelCalculatorForm() {
                 { name: "Poteaux Circ.", type: 'poteau', shape: 'circulaire', length: 3, diameter: 0.35, quantity: 2, longitudinalBars: { diameter: "12", count: 6 }, transversalBars: { type: "etrier", diameter: "8", spacing: 0.15 }, coating: 0.025 },
             ]
         },
+    });
+
+    useFormPersistence({
+        control: form.control,
+        name: 'metrical_steelCalculator',
+        setValue: form.setValue,
     });
 
     const { control } = form;
