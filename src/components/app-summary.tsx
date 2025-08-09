@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -28,7 +29,7 @@ export function AppSummary() {
   ];
 
   return (
-    <Accordion type="multiple" defaultValue={["item-1", "item-2"]} className="w-full mb-8 shadow-lg rounded-lg bg-card border">
+    <Accordion type="multiple" className="w-full mb-8 shadow-lg rounded-lg bg-card border">
       <AccordionItem value="item-1">
         <AccordionTrigger className="p-6 text-2xl font-semibold text-foreground hover:no-underline">
           <div className="flex items-center gap-3">

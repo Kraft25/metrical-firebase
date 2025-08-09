@@ -1,6 +1,6 @@
 
 import dynamic from 'next/dynamic';
-import { Calculator, Ungroup, Layers, Droplets, GitCommitHorizontal, FileText, Loader } from 'lucide-react';
+import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppSummary } from '@/components/app-summary';
 
@@ -36,7 +36,7 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto">
         <header className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 sm:gap-4">
-            <Calculator className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 sm:h-12 sm:w-12 text-primary"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
               Métrical
             </h1>
@@ -49,7 +49,7 @@ export default function Home() {
         <Tabs defaultValue="volume" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
             <TabsTrigger value="volume">
-              <Calculator className="mr-2" /> Calcul de Volume
+              <FileText className="mr-2" /> Calcul de Volume
             </TabsTrigger>
             <TabsTrigger value="blocks">
               <Ungroup className="mr-2" /> Calcul Maçonnerie

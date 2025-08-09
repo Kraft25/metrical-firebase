@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo } from 'react';
@@ -116,7 +117,7 @@ const MemoizedSubTotal = ({ componentData }: { componentData: z.infer<typeof com
   );
 };
 
-const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedComponentsForOuvrage }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null, watchedComponentsForOuvrage: any[] }) => {
+const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult }: { form: any, ouvrageIndex: number, removeOuvrage: (index: number) => void, dosageResult: DosageResult | null }) => {
     const { control } = form;
     const { fields: componentFields, append: appendComponent, remove: removeComponent } = useFieldArray({
         control,
@@ -124,6 +125,7 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedC
     });
     
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
+    const watchedComponentsForOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}.components` });
     
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
     const dosageName = dosageInfo ? dosageInfo.name : 'Dosage non défini';
@@ -173,7 +175,6 @@ const OuvrageItem = ({ form, ouvrageIndex, removeOuvrage, dosageResult, watchedC
 
                         {componentFields.map((componentField, componentIndex) => {
                           const watchedComponent = watchedComponentsForOuvrage?.[componentIndex];
-                          if (!watchedComponent) return null;
                           const shape = watchedComponent.shape || 'rectangular';
 
                           return (
@@ -321,13 +322,12 @@ export function CalculatorForm() {
     };
   }, [watchedForm]);
 
-  const watchedOuvragesComponents = useWatch({ control: form.control, name: 'ouvrages' })?.map(o => o.components);
-
   return (
     <Form {...form}>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
+               {fields.length > 0 ? (
                 <Accordion type="multiple" defaultValue={['ouvrage-0']} className="space-y-6">
                     {fields.map((ouvrageField, ouvrageIndex) => (
                         <OuvrageItem
@@ -336,10 +336,17 @@ export function CalculatorForm() {
                             ouvrageIndex={ouvrageIndex}
                             removeOuvrage={remove}
                             dosageResult={calculationResult?.byDosage[ouvrageIndex] || null}
-                            watchedComponentsForOuvrage={watchedOuvragesComponents?.[ouvrageIndex] || []}
                         />
                     ))}
                 </Accordion>
+                ) : (
+                    <Card className="shadow-lg">
+                        <CardContent className="p-6 text-center">
+                            <p className="text-muted-foreground">Aucun parc d'ouvrages. Ajoutez-en un pour commencer.</p>
+                        </CardContent>
+                    </Card>
+                )}
+
                  <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ dosage: 350, components: [{ name: 'Nouveau composant', shape: 'rectangular', length: 1, width: 1, height: 1, quantity: 1 }]})}>
                     <PlusCircle className="mr-2 h-5 w-5" />
                     Ajouter un nouveau parc d'ouvrages
