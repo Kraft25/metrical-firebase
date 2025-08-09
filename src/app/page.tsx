@@ -43,7 +43,6 @@ const defaultValues = {
     blockLength: 0.4,
     blockHeight: 0.2,
     blockThickness: 0.2,
-    jointThickness: 0.015,
     components: []
   },
   plaster: {

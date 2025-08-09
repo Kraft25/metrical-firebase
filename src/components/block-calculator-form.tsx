@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Sprout, Layers, Square, RefreshCw } from 'lucide-react';
+import { Ruler, Ungroup, PlusCircle, Trash2, Building, AreaChart, Square } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const wallComponentSchema = z.object({
@@ -29,7 +29,6 @@ export const formSchema = z.object({
   blockLength: z.coerce.number().positive("La longueur du bloc est requise."),
   blockHeight: z.coerce.number().positive("La hauteur du bloc est requise."),
   blockThickness: z.coerce.number().positive("L'épaisseur du bloc est requise."),
-  jointThickness: z.coerce.number().min(0, "L'épaisseur doit être positive ou nulle."),
   components: z.array(wallComponentSchema)
 });
 
@@ -73,13 +72,13 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        const { components, jointThickness, blockLength, blockHeight, blockThickness } = values;
+        const { components, blockLength, blockHeight } = values;
 
         if (!blockLength || !blockHeight || blockLength <= 0 || blockHeight <= 0) {
             return null;
         }
 
-        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
+        const blocksPerM2 = 1 / (blockLength * blockHeight);
         
         if (isNaN(blocksPerM2) || !isFinite(blocksPerM2)) {
             return null;
@@ -109,7 +108,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-6">
                         <FormField
                             control={form.control}
                             name="blockLength"
@@ -150,21 +149,6 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
                                     <div className="relative">
                                     <Square className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                                     <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
-                                    </div>
-                                </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="jointThickness"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Ép. joints (m)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                    <Input {...field} type="number" step="0.001" placeholder="0.015" className="pl-10 text-base h-11"/>
                                     </div>
                                 </FormControl>
                                 </FormItem>
