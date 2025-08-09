@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useForm, useFormState } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare, User, Paintbrush } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppSummary } from '@/components/app-summary';
@@ -47,9 +47,9 @@ type Suggestion = {
 const defaultValues = {
   volume: { ouvrages: [] },
   blocks: {
-    blockLength: 0,
-    blockHeight: 0,
-    blockThickness: 0,
+    blockLength: 0.4,
+    blockHeight: 0.2,
+    blockThickness: 0.15,
     components: []
   },
   plaster: {
@@ -74,8 +74,25 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Suggestion>();
 
+  useEffect(() => {
+    try {
+      const savedSuggestions = localStorage.getItem('suggestions');
+      if (savedSuggestions) {
+        setSuggestions(JSON.parse(savedSuggestions));
+      }
+    } catch (error) {
+      console.error("Failed to load suggestions from localStorage", error);
+    }
+  }, []);
+
   const handleSendSuggestion = (data: Suggestion) => {
-    setSuggestions(prev => [...prev, data]);
+    const newSuggestions = [...suggestions, data];
+    setSuggestions(newSuggestions);
+    try {
+      localStorage.setItem('suggestions', JSON.stringify(newSuggestions));
+    } catch (error) {
+       console.error("Failed to save suggestions to localStorage", error);
+    }
     reset();
   };
 
@@ -119,9 +136,9 @@ export default function Home() {
             <BlockCalculatorForm form={blockForm} />
           </TabsContent>
           <TabsContent value="finishes" className="mt-6">
-            <FinishesCalculatorForm 
-              plasterForm={plasterForm} 
-              waterproofingForm={waterproofingForm} 
+            <FinishesCalculatorForm
+              plasterForm={plasterForm}
+              waterproofingForm={waterproofingForm}
               blockFormValues={blockForm.watch()}
             />
           </TabsContent>
@@ -132,7 +149,7 @@ export default function Home() {
             <DqeForm />
           </TabsContent>
         </Tabs>
-        
+
         <div className="mt-16">
           <AppSummary />
         </div>
