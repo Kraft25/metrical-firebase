@@ -12,7 +12,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -71,25 +70,25 @@ export function BlockCalculatorForm() {
 
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const onSubmit = (values: FormValues) => {
-        const totalSurface = values.components.reduce((acc, comp) => {
-            return acc + (comp.length * comp.height);
-        }, 0);
-        
-        const blocksNeeded = Math.ceil(totalSurface * 12.5);
-
-        setCalculationResult({ blocksNeeded, totalSurface });
-    };
+    const watchedForm = useWatch({ control: form.control });
 
     useEffect(() => {
-        // Initial calculation on mount
-        onSubmit(form.getValues());
-    }, []);
+        const calculate = (values: FormValues) => {
+            const totalSurface = values.components.reduce((acc, comp) => {
+                return acc + (comp.length * comp.height);
+            }, 0);
+            
+            const blocksNeeded = Math.ceil(totalSurface * 12.5);
+
+            setCalculationResult({ blocksNeeded, totalSurface });
+        }
+        calculate(watchedForm as FormValues)
+    }, [watchedForm]);
 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -156,7 +155,7 @@ export function BlockCalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <CardFooter>
                         <Button
                             type="button"
                             variant="outline"
@@ -166,7 +165,6 @@ export function BlockCalculatorForm() {
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter un composant
                         </Button>
-                         <Button type="submit" className="h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>

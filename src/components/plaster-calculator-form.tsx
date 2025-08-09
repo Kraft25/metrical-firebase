@@ -89,43 +89,44 @@ export function PlasterCalculatorForm() {
     
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const onSubmit = (values: FormValues) => {
-        if (!values.components || !values.dosage || !values.thickness) {
-            setCalculationResult(null);
-            return;
-        }
-
-        const dosageInfo = plasterDosages[values.dosage as keyof typeof plasterDosages];
-        if (!dosageInfo) return;
-
-        const totalSurface = values.components.reduce((acc, comp) => {
-            return acc + (comp.length * comp.height);
-        }, 0);
-        
-        const totalVolume = totalSurface * values.thickness;
-        const cementKg = totalVolume * dosageInfo.cement;
-        const cementBags = Math.ceil(cementKg / 50);
-        const sandM3 = totalVolume * (dosageInfo.sand / 1000); // Assuming sand dosage is in L/m³
-
-        setCalculationResult({
-            totalSurface,
-            totalVolume,
-            materials: {
-                cementKg,
-                cementBags,
-                sandM3,
-            }
-        });
-    };
+    const watchedForm = useWatch({ control: form.control });
 
     useEffect(() => {
-        onSubmit(form.getValues());
-    }, []);
+        const calculate = (values: FormValues) => {
+            if (!values.components || !values.dosage || !values.thickness) {
+                setCalculationResult(null);
+                return;
+            }
+
+            const dosageInfo = plasterDosages[values.dosage as keyof typeof plasterDosages];
+            if (!dosageInfo) return;
+
+            const totalSurface = values.components.reduce((acc, comp) => {
+                return acc + (comp.length * comp.height);
+            }, 0);
+            
+            const totalVolume = totalSurface * values.thickness;
+            const cementKg = totalVolume * dosageInfo.cement;
+            const cementBags = Math.ceil(cementKg / 50);
+            const sandM3 = totalVolume * (dosageInfo.sand / 1000); // Assuming sand dosage is in L/m³
+
+            setCalculationResult({
+                totalSurface,
+                totalVolume,
+                materials: {
+                    cementKg,
+                    cementBags,
+                    sandM3,
+                }
+            });
+        }
+        calculate(watchedForm as FormValues);
+    }, [watchedForm]);
 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -206,7 +207,7 @@ export function PlasterCalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <CardFooter>
                         <Button
                             type="button"
                             variant="outline"
@@ -216,7 +217,6 @@ export function PlasterCalculatorForm() {
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter une surface
                         </Button>
-                        <Button type="submit" className="w-full sm:w-auto h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>

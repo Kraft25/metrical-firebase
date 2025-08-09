@@ -55,32 +55,34 @@ export function WaterproofingCalculatorForm() {
     
     const [calculationResult, setCalculationResult] = useState<CalculationResult>(null);
 
-    const onSubmit = (values: FormValues) => {
-        if (!values.components || !values.consumption || !values.layers) {
-            setCalculationResult(null);
-            return;
-        }
-
-        const totalSurface = values.components.reduce((acc, comp) => {
-            return acc + comp.area;
-        }, 0);
-        
-        const totalProduct = totalSurface * values.consumption * values.layers;
-
-        setCalculationResult({
-            totalSurface,
-            totalProduct,
-        });
-    };
+    const watchedForm = useWatch({ control: form.control });
 
     useEffect(() => {
-        onSubmit(form.getValues());
-    }, []);
+        const calculate = (values: FormValues) => {
+             if (!values.components || !values.consumption || !values.layers) {
+                setCalculationResult(null);
+                return;
+            }
+
+            const totalSurface = values.components.reduce((acc, comp) => {
+                return acc + comp.area;
+            }, 0);
+            
+            const totalProduct = totalSurface * values.consumption * values.layers;
+
+            setCalculationResult({
+                totalSurface,
+                totalProduct,
+            });
+        }
+       
+        calculate(watchedForm as FormValues);
+    }, [watchedForm]);
 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
@@ -152,7 +154,7 @@ export function WaterproofingCalculatorForm() {
                         </div>
                         ))}
                     </CardContent>
-                    <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <CardFooter>
                         <Button
                             type="button"
                             variant="outline"
@@ -162,7 +164,6 @@ export function WaterproofingCalculatorForm() {
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Ajouter une surface
                         </Button>
-                        <Button type="submit" className="w-full sm:w-auto h-11">Effectuer le Calcul</Button>
                     </CardFooter>
                 </Card>
             </div>
