@@ -50,7 +50,6 @@ const defaultValues = {
   plaster: {
     thickness: 0.015,
     dosage: "300",
-    components: []
   },
   waterproofing: {
     consumption: 1.5,
@@ -110,7 +109,7 @@ export default function Home() {
             <BlockCalculatorForm form={blockForm} />
           </TabsContent>
           <TabsContent value="plaster" className="mt-6">
-            <PlasterCalculatorForm form={plasterForm} />
+            <PlasterCalculatorForm form={plasterForm} blockFormValues={blockForm.watch()} />
           </TabsContent>
            <TabsContent value="waterproofing" className="mt-6">
             <WaterproofingCalculatorForm form={waterproofingForm} />

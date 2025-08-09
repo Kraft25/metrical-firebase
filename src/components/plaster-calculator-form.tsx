@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useForm, useFieldArray, useWatch, Control, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import type { FormValues as BlockFormValues } from './block-calculator-form';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,19 +17,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { Ruler, PlusCircle, Trash2, Building, AreaChart, Layers, Sprout } from 'lucide-react';
+import { Ruler, PlusCircle, Trash2, Building, AreaChart, Layers, Sprout, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
-const wallComponentSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis.'),
-  length: z.coerce.number().positive("La longueur doit être positive."),
-  height: z.coerce.number().positive("La hauteur doit être positive."),
-});
 
 export const formSchema = z.object({
   thickness: z.coerce.number().positive("L'épaisseur est requise."),
   dosage: z.enum(["250", "300", "350", "400", "500"]),
-  components: z.array(wallComponentSchema)
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -51,48 +45,34 @@ type CalculationResult = {
     };
 } | null;
 
-const MemoizedSubTotal = ({ control, index }: { control: Control<FormValues>, index: number }) => {
-  const data = useWatch({ control, name: `components.${index}` });
-
-  const subtotal = useMemo(() => {
-    const { length = 0, height = 0 } = data;
-    return length * height;
-  }, [data]);
-
-  return (
-    <div className="flex flex-col space-y-2 h-full justify-between">
-      <FormLabel className="text-muted-foreground">Surface</FormLabel>
-      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-11 px-3 rounded-md border bg-card text-foreground">
-        {subtotal.toFixed(2)} m²
-      </div>
-    </div>
-  );
-};
 
 interface PlasterCalculatorFormProps {
     form: UseFormReturn<FormValues>;
+    blockFormValues: BlockFormValues;
 }
 
-export function PlasterCalculatorForm({ form }: PlasterCalculatorFormProps) {
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: 'components',
-    });
-    
+export function PlasterCalculatorForm({ form, blockFormValues }: PlasterCalculatorFormProps) {
     const watchedForm = useWatch({ control: form.control });
+
+    const totalSurfaceFromBlocks = useMemo(() => {
+        return (blockFormValues.components || []).reduce((acc, comp) => {
+            const length = Number(comp.length) || 0;
+            const height = Number(comp.height) || 0;
+            return acc + (length * height);
+        }, 0);
+    }, [blockFormValues.components]);
+
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        if (!values.components || !values.dosage || !values.thickness) {
+        if (!values.dosage || !values.thickness) {
             return null;
         }
 
         const dosageInfo = plasterDosages[values.dosage as keyof typeof plasterDosages];
         if (!dosageInfo) return null;
 
-        const totalSurface = values.components.reduce((acc, comp) => {
-            return acc + (comp.length * comp.height);
-        }, 0);
+        const totalSurface = totalSurfaceFromBlocks;
 
         if (totalSurface === 0) return null;
         
@@ -110,7 +90,7 @@ export function PlasterCalculatorForm({ form }: PlasterCalculatorFormProps) {
                 sandM3,
             }
         };
-    }, [watchedForm]);
+    }, [watchedForm, totalSurfaceFromBlocks]);
 
 
   return (
@@ -121,6 +101,9 @@ export function PlasterCalculatorForm({ form }: PlasterCalculatorFormProps) {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Paramètres de l'Enduit</CardTitle>
+                        <CardDescription>
+                            Le calcul se base sur la surface totale des murs définie dans l'onglet "Calcul Maçonnerie".
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                          <FormField
@@ -162,53 +145,19 @@ export function PlasterCalculatorForm({ form }: PlasterCalculatorFormProps) {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle>Surfaces à Enduire</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {fields.map((field, index) => (
-                        <div key={field.id} className="bg-secondary/30 p-4 rounded-lg border space-y-4">
-                           <div className="flex justify-between items-center gap-4">
-                             <FormField
-                                control={form.control}
-                                name={`components.${index}.name`}
-                                render={({ field }) => ( <FormItem className="w-full"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
-                            />
-                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-8 text-destructive">
-                                <Trash2 className="h-5 w-5" />
-                            </Button>
+                 {totalSurfaceFromBlocks === 0 && (
+                   <Card>
+                        <CardHeader className="flex-row items-center gap-4">
+                           <Info className="h-8 w-8 text-primary" />
+                           <div>
+                            <CardTitle>Aucune surface définie</CardTitle>
+                            <CardDescription>
+                                Veuillez d'abord ajouter des composants de mur dans l'onglet "Calcul Maçonnerie" pour calculer l'enduit nécessaire.
+                            </CardDescription>
                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                <FormField
-                                    control={form.control}
-                                    name={`components.${index}.length`}
-                                    render={({ field }) => ( <FormItem> <FormLabel>Longueur (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name={`components.${index}.height`}
-                                    render={({ field }) => ( <FormItem> <FormLabel>Hauteur (m)</FormLabel> <FormControl><div className="relative"><Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
-                                />
-                                <MemoizedSubTotal control={form.control} index={index} />
-                            </div>
-                        </div>
-                        ))}
-                    </CardContent>
-                    <CardFooter>
-                         {fields.length === 0 ? (
-                            <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Ajouter une surface
-                            </Button>
-                        ) : (
-                             <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: '', length: 0, height: 0 })}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Ajouter une autre surface
-                            </Button>
-                        )}
-                    </CardFooter>
-                </Card>
+                        </CardHeader>
+                   </Card>
+                )}
             </div>
             
             <div className="lg:col-span-1 space-y-6">
