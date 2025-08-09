@@ -26,20 +26,14 @@ const wallComponentSchema = z.object({
 });
 
 const formSchema = z.object({
-  blockType: z.string(),
+  blockLength: z.coerce.number().positive("La longueur du parpaing est requise."),
+  blockHeight: z.coerce.number().positive("La hauteur du parpaing est requise."),
   mortarDosage: z.enum(["250", "300", "350"]),
   jointThickness: z.coerce.number().positive("L'épaisseur est requise."),
   components: z.array(wallComponentSchema)
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-const blockTypes = {
-    "20x40": { name: "Parpaing 20x40 cm", blocksPerM2: 12.5 },
-    "15x40": { name: "Parpaing 15x40 cm", blocksPerM2: 12.5 },
-    "10x40": { name: "Parpaing 10x40 cm", blocksPerM2: 12.5 },
-    "brique": { name: "Brique standard", blocksPerM2: 50 },
-};
 
 const mortarDosages = {
     "250": { name: "Mortier bâtard (250 kg/m³)", cement: 250, sand: 1.05 },
@@ -50,6 +44,7 @@ const mortarDosages = {
 type CalculationResult = {
     blocksNeeded: number;
     totalSurface: number;
+    blocksPerM2: number;
     mortar: {
         volume: number;
         cementBags: number;
@@ -80,7 +75,8 @@ export function BlockCalculatorForm() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            blockType: "20x40",
+            blockLength: 0.40,
+            blockHeight: 0.20,
             mortarDosage: "300",
             jointThickness: 0.015, // 1.5 cm
             components: [
@@ -101,20 +97,18 @@ export function BlockCalculatorForm() {
 
     useEffect(() => {
         const calculate = (values: FormValues) => {
-            const { components, mortarDosage, jointThickness, blockType } = values;
-            if (!components || !mortarDosage || !jointThickness || !blockType) {
+            const { components, mortarDosage, jointThickness, blockLength, blockHeight } = values;
+            if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight ) {
                 setCalculationResult(null);
                 return;
             }
             
-            const blockInfo = blockTypes[blockType as keyof typeof blockTypes];
-            if (!blockInfo) return;
-
             const totalSurface = components.reduce((acc, comp) => {
                 return acc + (comp.length * comp.height);
             }, 0);
-            
-            const blocksNeeded = Math.ceil(totalSurface * blockInfo.blocksPerM2);
+
+            const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
+            const blocksNeeded = Math.ceil(totalSurface * blocksPerM2);
 
             // Mortar Calculation
             const mortarDosageInfo = mortarDosages[mortarDosage as keyof typeof mortarDosages];
@@ -127,6 +121,7 @@ export function BlockCalculatorForm() {
             setCalculationResult({ 
                 blocksNeeded, 
                 totalSurface,
+                blocksPerM2,
                 mortar: {
                     volume: mortarVolume,
                     cementBags,
@@ -147,28 +142,49 @@ export function BlockCalculatorForm() {
                     <CardHeader>
                         <CardTitle>Paramètres de Maçonnerie</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <FormField
                             control={form.control}
-                            name="blockType"
+                            name="blockLength"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Type de parpaing</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger className="text-base h-11">
-                                        <div className="flex items-center gap-2">
-                                            <Square className="h-5 w-5 text-muted-foreground" />
-                                            <SelectValue />
-                                        </div>
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {Object.entries(blockTypes).map(([key, value]) => (
-                                        <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
+                                <FormLabel>Long. parpaing (m)</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.40" className="pl-10 text-base h-11"/>
+                                    </div>
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="blockHeight"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Haut. parpaing (m)</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transform rotate-90"/>
+                                    <Input {...field} type="number" step="0.01" placeholder="0.20" className="pl-10 text-base h-11"/>
+                                    </div>
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="jointThickness"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Ép. joints (m)</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                    <Input {...field} type="number" step="0.001" placeholder="0.015" className="pl-10 text-base h-11"/>
+                                    </div>
+                                </FormControl>
                                 </FormItem>
                             )}
                         />
@@ -177,7 +193,7 @@ export function BlockCalculatorForm() {
                             name="mortarDosage"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Dosage du mortier</FormLabel>
+                                <FormLabel>Dosage mortier</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                     <SelectTrigger className="text-base h-11">
@@ -186,25 +202,10 @@ export function BlockCalculatorForm() {
                                     </FormControl>
                                     <SelectContent>
                                     {Object.entries(mortarDosages).map(([key, value]) => (
-                                        <SelectItem key={key} value={key} className="text-base">{value.name}</SelectItem>
+                                        <SelectItem key={key} value={key} className="text-base">{value.name.split('(')[0]}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="jointThickness"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Épaisseur des joints (m)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                    <Input {...field} type="number" step="0.001" placeholder="0.015" className="pl-10 text-base h-11"/>
-                                    </div>
-                                </FormControl>
                                 </FormItem>
                             )}
                         />
@@ -313,7 +314,11 @@ export function BlockCalculatorForm() {
                         <CardTitle>Référence de Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Le nombre de parpaings par m² dépend du type de bloc et de la taille des joints.</p>
+                         {calculationResult && (
+                           <p className="text-sm text-muted-foreground">
+                             Sur la base de vos dimensions, il faut environ <span className="font-bold text-foreground">{calculationResult.blocksPerM2.toFixed(1)}</span> parpaings par m².
+                           </p>
+                         )}
                     </CardContent>
                 </Card>
                  {calculationResult && (
