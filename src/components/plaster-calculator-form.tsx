@@ -187,6 +187,9 @@ export function PlasterCalculatorForm() {
                                 name={`components.${index}.name`}
                                 render={({ field }) => ( <FormItem className="w-full"> <FormLabel>Nom du composant</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Mur Est" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
+                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="mt-8 ml-2 text-destructive">
+                                <Trash2 className="h-5 w-5" />
+                            </Button>
                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                                 <FormField
@@ -201,11 +204,8 @@ export function PlasterCalculatorForm() {
                                 />
                             </div>
                             <Separator />
-                             <div className="grid grid-cols-2 gap-4 items-center">
+                             <div className="flex justify-end">
                                 <MemoizedSubTotal control={form.control} index={index} />
-                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
                             </div>
                         </div>
                         ))}
@@ -213,8 +213,8 @@ export function PlasterCalculatorForm() {
                     <CardFooter>
                         <Button
                             type="button"
-                            variant="outline"
-                            className="w-full sm:w-auto h-11"
+                            variant="secondary"
+                            className="w-full h-12 text-base"
                             onClick={() => append({ name: '', length: 0, height: 0 })}
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
