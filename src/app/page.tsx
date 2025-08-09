@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 import React, { useState } from 'react';
-import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare } from 'lucide-react';
+import { FileText, Ungroup, Layers, Droplets, GitCommitHorizontal, Loader, Send, MessageSquare, User } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppSummary } from '@/components/app-summary';
 import type { FormValues as VolumeFormValues } from '@/components/calculator-form';
@@ -15,6 +15,7 @@ import type { FormValues as SteelFormValues } from '@/components/steel-calculato
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const LoadingComponent = () => (
   <div className="flex items-center justify-center p-16">
@@ -41,12 +42,17 @@ const DqeForm = dynamic(() => import('@/components/dqe-form').then(mod => mod.Dq
   loading: () => <LoadingComponent />,
 });
 
+type Suggestion = {
+    name: string;
+    suggestion: string;
+};
+
 const defaultValues = {
   volume: { ouvrages: [] },
   blocks: {
-    blockLength: 0.4,
-    blockHeight: 0.2,
-    blockThickness: 0.2,
+    blockLength: 0,
+    blockHeight: 0,
+    blockThickness: 0,
     components: []
   },
   plaster: {
@@ -68,14 +74,13 @@ export default function Home() {
   const waterproofingForm = useForm<WaterproofingFormValues>({ defaultValues: defaultValues.waterproofing });
   const steelForm = useForm<SteelFormValues>({ defaultValues: defaultValues.steel });
 
-  const [feedback, setFeedback] = useState('');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Suggestion>();
 
-  const handleSendFeedback = () => {
-    const subject = "Suggestion pour l'application Métrical";
-    const body = encodeURIComponent(feedback);
-    window.location.href = `mailto:danielhoba20@gmail.com?subject=${subject}&body=${body}`;
+  const handleSendSuggestion = (data: Suggestion) => {
+    setSuggestions(prev => [...prev, data]);
+    reset();
   };
-
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 sm:p-8 lg:p-16 bg-background">
@@ -145,27 +150,65 @@ export default function Home() {
                         <div>
                             <CardTitle>Suggestions & Améliorations</CardTitle>
                             <CardDescription>
-                                Votre avis est précieux. Laissez un commentaire pour nous aider à améliorer l'application.
+                                Votre avis est précieux. Laissez un commentaire public pour nous aider à améliorer l'application.
                             </CardDescription>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <Textarea
-                        placeholder="Écrivez votre suggestion ici..."
-                        rows={5}
-                        value={feedback}
-                        onChange={(e) => setFeedback(e.target.value)}
-                        className="text-base"
-                    />
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={handleSendFeedback} disabled={!feedback.trim()} className="w-full sm:w-auto ml-auto">
-                        <Send className="mr-2 h-4 w-4" />
-                        Envoyer par e-mail
-                    </Button>
-                </CardFooter>
+                <form onSubmit={handleSubmit(handleSendSuggestion)}>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">Nom (obligatoire)</label>
+                            <div className="relative">
+                               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                               <Input
+                                  id="name"
+                                  placeholder="Votre nom..."
+                                  {...register("name", { required: "Le nom est obligatoire." })}
+                                  className="pl-10"
+                                />
+                            </div>
+                            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="suggestion" className="block text-sm font-medium text-foreground mb-1">Suggestion</label>
+                            <Textarea
+                                id="suggestion"
+                                placeholder="Écrivez votre suggestion ici..."
+                                rows={5}
+                                {...register("suggestion", { required: "Veuillez laisser une suggestion."})}
+                                className="text-base"
+                            />
+                            {errors.suggestion && <p className="text-sm text-destructive mt-1">{errors.suggestion.message}</p>}
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto ml-auto">
+                            <Send className="mr-2 h-4 w-4" />
+                            Publier
+                        </Button>
+                    </CardFooter>
+                </form>
             </Card>
+
+            {suggestions.length > 0 && (
+                <div className="mt-8 space-y-4">
+                    <h3 className="text-2xl font-bold text-center">Suggestions Récentes</h3>
+                    {suggestions.slice().reverse().map((s, i) => (
+                        <Card key={i} className="bg-card/50">
+                            <CardHeader>
+                                <div className="flex items-center gap-3">
+                                    <User className="h-6 w-6 text-primary"/>
+                                    <CardTitle className="text-xl">{s.name}</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground">{s.suggestion}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </section>
 
       </div>
