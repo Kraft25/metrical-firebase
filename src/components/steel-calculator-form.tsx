@@ -49,11 +49,14 @@ const ouvrageSchema = z.object({
     path: ['shape'],
 }).refine(data => {
     if (data.shape === 'rectangulaire') {
-        return data.width !== undefined && (data.height !== undefined || data.type === 'semelle');
+        const isWidthMissing = data.width === undefined;
+        // Height is only required for 'poutre' and 'poteau'
+        const isHeightMissing = (data.type === 'poutre' || data.type === 'poteau') && data.height === undefined;
+        return !isWidthMissing && !isHeightMissing;
     }
     return true;
 }, {
-    message: "Largeur et hauteur sont requises pour une forme rectangulaire.",
+    message: "Largeur et hauteur sont requises pour cette forme.",
     path: ['width']
 }).refine(data => {
     if (data.shape === 'circulaire') {
@@ -114,9 +117,9 @@ const calculateSteelFn = (values: FormValues | undefined) => {
         if (ouvrage.shape === 'circulaire' && ouvrage.diameter) {
              const diameterMinusCoating = ouvrage.diameter - 2 * ouvrage.coating;
              singleTransversalLength = Math.PI * diameterMinusCoating; // Circonférence de l'étrier circulaire
-        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width && (ouvrage.height || ouvrage.type === 'semelle')) {
+        } else if (ouvrage.shape === 'rectangulaire' && ouvrage.width) {
             const widthMinusCoating = ouvrage.width - 2 * ouvrage.coating;
-            const heightMinusCoating = (ouvrage.height || 0) - 2 * ouvrage.coating;
+            const heightMinusCoating = (ouvrage.height || 0) - 2 * ouvrage.coating; // Height can be 0 for semelle
             if (ouvrage.transversalBars.type === 'etrier') {
                 singleTransversalLength = 2 * (widthMinusCoating + heightMinusCoating);
             } else { // 'epingle'

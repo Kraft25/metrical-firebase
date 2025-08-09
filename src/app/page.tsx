@@ -103,11 +103,11 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto">
         <header className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 sm:gap-4">
-            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-primary">
-                <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" />
-                <path d="M7 8H17" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M7 12H17" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M7 16H13" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-primary">
+                <path d="M4.28571 42.4285V5.57143C4.28571 4.83901 4.88126 4.24286 5.61429 4.24286H25.2L43.7143 22.8V42.4285C43.7143 43.161 43.1187 43.7571 42.3857 43.7571H5.61429C4.88126 43.7571 4.28571 43.161 4.28571 42.4285Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M24.5143 4.24286V22.8H43.7143" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M30.8572 29.1429H17.1429" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                <path d="M24 35.5714H17.1429" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
             </svg>
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
               Métrical
