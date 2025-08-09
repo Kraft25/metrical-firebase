@@ -87,7 +87,7 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
         const values = watchedForm as FormValues;
         const { components, mortarDosage, jointThickness, blockLength, blockHeight, blockThickness } = values;
         
-        if (!components || !mortarDosage || !jointThickness || !blockLength || !blockHeight || !blockThickness || blockLength <= 0 || blockHeight <= 0 || blockThickness <= 0) {
+        if (!components || !mortarDosage || !blockLength || !blockHeight || !blockThickness || blockLength <= 0 || blockHeight <= 0 || blockThickness <= 0 || jointThickness <= 0) {
             return null;
         }
 
@@ -97,15 +97,13 @@ export function BlockCalculatorForm({ form }: BlockCalculatorFormProps) {
             return acc + (length * height);
         }, 0);
 
-        const blocksPerM2 = (blockLength > 0 && blockHeight > 0 && jointThickness > 0) 
-            ? 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness))
-            : 0;
+        const blocksPerM2 = 1 / ((blockLength + jointThickness) * (blockHeight + jointThickness));
         
-        if (totalSurface === 0 || blocksPerM2 === 0) {
+        if (totalSurface === 0 || isNaN(blocksPerM2) || blocksPerM2 === Infinity) {
              return {
                 blocksNeeded: 0,
                 totalSurface: 0,
-                blocksPerM2,
+                blocksPerM2: isNaN(blocksPerM2) || blocksPerM2 === Infinity ? 0 : blocksPerM2,
                 mortar: { volume: 0, cementBags: 0, sandM3: 0 }
             };
         }
