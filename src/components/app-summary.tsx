@@ -62,7 +62,7 @@ export function AppSummary() {
         </AccordionTrigger>
         <AccordionContent className="px-6 pb-6">
            <div className="text-center text-muted-foreground max-w-3xl mx-auto space-y-4">
-            <p className="font-semibold text-destructive-foreground text-lg">
+            <p className="font-semibold text-destructive text-lg">
               Les calculs fournis par cette application sont des estimations et ne doivent en aucun cas remplacer une étude technique professionnelle réalisée par un bureau d'études ou un ingénieur qualifié.
             </p>
             <p>
