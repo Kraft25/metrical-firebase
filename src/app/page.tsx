@@ -103,11 +103,15 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto">
         <header className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 sm:gap-4">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-primary">
-                <path d="M4.28571 42.4285V5.57143C4.28571 4.83901 4.88126 4.24286 5.61429 4.24286H25.2L43.7143 22.8V42.4285C43.7143 43.161 43.1187 43.7571 42.3857 43.7571H5.61429C4.88126 43.7571 4.28571 43.161 4.28571 42.4285Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M24.5143 4.24286V22.8H43.7143" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M30.8572 29.1429H17.1429" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                <path d="M24 35.5714H17.1429" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12">
+                <defs>
+                    <linearGradient id="iconGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#FF8C00" />
+                        <stop offset="100%" stopColor="#DA70D6" />
+                    </linearGradient>
+                </defs>
+                <path d="M24,4 C12.954,4 4,12.954 4,24 C4,35.046 12.954,44 24,44 C35.046,44 44,35.046 44,24 C44,12.954 35.046,4 24,4 Z M24,42 C14.059,42 6,33.941 6,24 C6,14.059 14.059,6 24,6 C33.941,6 42,14.059 42,24 C42,33.941 33.941,42 24,42 Z" fill="url(#iconGradient)"/>
+                <path d="M24.06,14.99C24.06,14.99 21.05,20.54 21.05,25.02C21.05,29.5 24.02,33 24.02,33C24.02,33 27,29.5 27,25.02C27,20.54 24.06,14.99 24.06,14.99Z M31.02,24.02C31.02,24.02 26.47,24.02 24,27C21.53,24.02 17.01,24.02 17.01,24.02C17.01,24.02 21.53,30.58 24,33.02C26.47,30.58 31.02,24.02 31.02,24.02Z" fill="url(#iconGradient)" />
             </svg>
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
               Métrical
