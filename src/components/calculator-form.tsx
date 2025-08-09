@@ -110,6 +110,9 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                     </div>
                      <div className="flex items-center gap-2">
                          {dosageResult && <span className="text-base font-bold text-muted-foreground">{dosageResult.volume.toFixed(2)} m³</span>}
+                         <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={(e) => { e.stopPropagation(); removeOuvrage(ouvrageIndex); }}>
+                            <Trash2 className="h-5 w-5"/>
+                        </Button>
                      </div>
                 </div>
             </AccordionTrigger>
@@ -138,9 +141,6 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                                     </FormItem>
                                 )}
                             />
-                            <Button type="button" variant="ghost" size="icon" className="text-destructive self-end" onClick={() => removeOuvrage(ouvrageIndex)}>
-                                <Trash2 className="h-5 w-5"/>
-                            </Button>
                         </div>
 
                         {componentFields.map((componentField, componentIndex) => (
