@@ -146,9 +146,8 @@ export function WaterproofingCalculatorForm() {
                                 render={({ field }) => ( <FormItem> <FormLabel>Surface (m²)</FormLabel> <FormControl><div className="relative"><AreaChart className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} type="number" step="0.01" placeholder="0.00" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}
                             />
                             <div className="col-span-1 sm:col-span-3 flex justify-end">
-                                <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto h-11">
-                                    <Trash2 className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Supprimer</span>
+                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="w-full sm:w-auto h-11">
+                                    <Trash2 className="h-5 w-5" />
                                 </Button>
                             </div>
                         </div>

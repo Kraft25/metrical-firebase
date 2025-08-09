@@ -157,9 +157,8 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                             <Separator />
                             <div className="grid grid-cols-2 gap-4 items-center">
                                 <MemoizedSubTotal control={control} ouvrageIndex={ouvrageIndex} componentIndex={componentIndex} />
-                                <Button type="button" variant="destructive" onClick={() => removeComponent(componentIndex)} className="w-full sm:w-auto sm:justify-self-end">
-                                    <Trash2 className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Supprimer</span>
+                                <Button type="button" variant="destructive" size="icon" onClick={() => removeComponent(componentIndex)} className="w-full sm:w-auto sm:justify-self-end">
+                                    <Trash2 className="h-5 w-5" />
                                 </Button>
                             </div>
                         </div>

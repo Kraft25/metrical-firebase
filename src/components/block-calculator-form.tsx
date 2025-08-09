@@ -247,9 +247,8 @@ export function BlockCalculatorForm() {
                              <Separator className="my-4"/>
                              <div className="grid grid-cols-2 gap-4 items-center">
                                 <MemoizedSubTotal control={form.control} index={index} />
-                                <Button type="button" variant="destructive" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
-                                    <Trash2 className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Supprimer</span>
+                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="w-full sm:w-auto sm:justify-self-end h-11">
+                                    <Trash2 className="h-5 w-5" />
                                 </Button>
                             </div>
                         </div>
