@@ -159,25 +159,36 @@ export function SteelCalculatorForm() {
                             {fields.map((field, index) => {
                                 const ouvrage = watchedOuvrages[index];
                                 const ouvrageResult = calculationResult?.ouvrageResults[index];
-                                const ouvrageTitle = ouvrage?.name || `Ouvrage #${index + 1}`;
                                 
                                 return (
                                 <AccordionItem key={field.id} value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
-                                    <div className="flex items-center p-4 sm:p-6 text-lg font-semibold">
-                                        <AccordionTrigger className="w-full hover:no-underline">
+                                     <div className="flex items-center">
+                                        <AccordionTrigger className="flex-1 p-4 sm:p-6 text-lg font-semibold hover:no-underline">
                                             <div className="flex items-center justify-between w-full">
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
-                                                    <span className="bg-primary/10 text-primary font-bold py-1 px-3 rounded-full">#{index + 1}</span>
-                                                    <h3 className="text-lg font-semibold text-foreground">{ouvrageTitle}</h3>
+                                                <div className="flex items-center gap-4 text-left">
+                                                    <span className="bg-primary/10 text-primary font-bold size-10 flex items-center justify-center rounded-full">
+                                                        #{index + 1}
+                                                    </span>
+                                                    <div>
+                                                        <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
+                                                        <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 pr-4">
-                                                    {ouvrageResult && <span className="text-base font-bold text-muted-foreground">{ouvrageResult.totalWeight.toFixed(2)} kg</span>}
+                                                <div className="text-right">
+                                                   {ouvrageResult && (
+                                                     <>
+                                                        <p className="text-lg font-bold text-foreground">{ouvrageResult.totalWeight.toFixed(2)} kg</p>
+                                                        <p className="text-sm font-normal text-muted-foreground">Poids</p>
+                                                     </>
+                                                   )}
                                                 </div>
                                             </div>
                                         </AccordionTrigger>
-                                        <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
-                                            <Trash2 className="h-5 w-5"/>
-                                        </Button>
+                                        <div className="p-2 pr-4">
+                                            <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
+                                                <Trash2 className="h-5 w-5"/>
+                                            </Button>
+                                        </div>
                                     </div>
                                     <AccordionContent>
                                         <div className="border-t p-6 space-y-6">
@@ -281,3 +292,5 @@ export function SteelCalculatorForm() {
         </Form>
     );
 }
+
+    
