@@ -103,7 +103,12 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto">
         <header className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 sm:gap-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 sm:h-12 sm:w-12 text-primary"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-primary">
+                <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" />
+                <path d="M7 8H17" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M7 12H17" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M7 16H13" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
               Métrical
             </h1>
@@ -220,11 +225,10 @@ export default function Home() {
                 </div>
             )}
         </section>
-
+        
         <div className="mt-16">
           <AppSummary />
         </div>
-
       </div>
       <footer className="w-full text-center mt-16 max-w-3xl mx-auto">
         <p className="text-sm text-muted-foreground">
