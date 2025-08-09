@@ -93,7 +93,7 @@ export default function Home() {
       </div>
       <footer className="w-full text-center mt-16">
         <p className="text-sm text-muted-foreground">
-          Créé par Daniel HK
+          Créé par Daniel HOBA Etudiant en genie civil
         </p>
       </footer>
     </main>
