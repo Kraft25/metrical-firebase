@@ -174,14 +174,6 @@ export function SteelCalculatorForm() {
                                                         <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type}</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                   {ouvrageResult && (
-                                                     <>
-                                                        <p className="text-lg font-bold text-foreground">{ouvrageResult.totalWeight.toFixed(2)} kg</p>
-                                                        <p className="text-sm font-normal text-muted-foreground">Poids</p>
-                                                     </>
-                                                   )}
-                                                </div>
                                             </div>
                                         </AccordionTrigger>
                                         <div className="p-2 pr-4">
@@ -246,6 +238,16 @@ export function SteelCalculatorForm() {
                                                 )}/>
                                             </div>
                                         </div>
+                                         {ouvrageResult && (
+                                            <CardFooter className="bg-muted/30 border-t p-4 sm:p-6 flex-col items-start">
+                                                 <h4 className="text-lg font-semibold mb-2">{ouvrage.name}</h4>
+                                                 <p className="text-sm text-muted-foreground mb-3">Poids total: <span className="font-bold">{ouvrageResult.totalWeight.toFixed(2)} kg</span></p>
+                                                 <ul className="text-sm space-y-1 w-full">
+                                                    <li className="flex justify-between"><span>Poids longitudinaux:</span> <span className="font-bold">{ouvrageResult.longitudinalWeight.toFixed(2)} kg</span></li>
+                                                    <li className="flex justify-between"><span>Poids transversaux:</span> <span className="font-bold">{ouvrageResult.transversalWeight.toFixed(2)} kg</span></li>
+                                                 </ul>
+                                            </CardFooter>
+                                        )}
                                     </AccordionContent>
                                 </AccordionItem>
                                 )
@@ -292,5 +294,3 @@ export function SteelCalculatorForm() {
         </Form>
     );
 }
-
-    

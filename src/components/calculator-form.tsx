@@ -114,14 +114,6 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                                 <p className="text-sm font-normal text-muted-foreground">Dosage: {watchedOuvrage.dosage} kg/m³</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                           {dosageResult && (
-                             <>
-                                <p className="text-lg font-bold text-foreground">{dosageResult.volume.toFixed(2)} m³</p>
-                                <p className="text-sm font-normal text-muted-foreground">Volume</p>
-                             </>
-                           )}
-                        </div>
                     </div>
                 </AccordionTrigger>
                 <div className="p-2 pr-4">
