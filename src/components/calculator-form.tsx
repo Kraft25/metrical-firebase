@@ -127,8 +127,11 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
     });
     
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
+    
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
-    const dosageName = dosageInfo ? dosageInfo.name : "Dosage non sélectionné";
+    if (!dosageInfo) return null; // Safe early return
+
+    const dosageName = dosageInfo.name;
 
     return (
         <AccordionItem value={`ouvrage-${ouvrageIndex}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
@@ -281,7 +284,7 @@ export function CalculatorForm() {
         return null;
     }
     let totalVolume = 0;
-    const byDosage: CalculationResult['byDosage'] = [];
+    const byDosage: DosageResult['byDosage'] = [];
 
     values.ouvrages.forEach((ouvrage, index) => {
         const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];
