@@ -113,7 +113,7 @@ const MemoizedSubTotal = ({ control, ouvrageIndex, componentIndex }: { control: 
   return (
     <div className="flex flex-col space-y-2 h-full justify-between">
       <FormLabel className="text-muted-foreground">Sous-Total Volume</FormLabel>
-      <div className="flex items-center justify-end sm:justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
+      <div className="flex items-center justify-start font-bold text-lg h-10 px-3 rounded-md border bg-card text-foreground">
         {subtotal.toFixed(3)} m³
       </div>
     </div>
@@ -127,11 +127,9 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
     });
     
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
-    const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
     
-    if (!dosageInfo) return null; // Safe early return after all hooks are called.
-
-    const dosageName = dosageInfo.name;
+    const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
+    const dosageName = dosageInfo ? dosageInfo.name : 'Dosage non défini';
 
     return (
         <AccordionItem value={`ouvrage-${ouvrageIndex}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
@@ -233,7 +231,7 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
                     </div>
                     {dosageResult && (
                         <CardFooter className="bg-muted/30 border-t p-4 sm:p-6 flex-col items-start">
-                            <h4 className="text-lg font-semibold mb-2">{dosageName}</h4>
+                            <h4 className="text-lg font-semibold mb-2">{dosageName.split('(')[0].trim()}</h4>
                             <p className="text-sm text-muted-foreground mb-3">Volume: <span className="font-bold">{dosageResult.volume.toFixed(2)} m³</span></p>
                             <ul className="text-sm space-y-1 w-full">
                                 <li className="flex justify-between"><span>Ciment (sacs de 50kg):</span> <span className="font-bold">{dosageResult.materials.cement}</span></li>

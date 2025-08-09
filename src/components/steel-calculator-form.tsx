@@ -149,6 +149,134 @@ const calculateSteel = (values: FormValues) => {
     return { totalWeight, weightByDiameter: finalWeightByDiameter, ouvrageResults };
 };
 
+function OuvrageSteelItem({ form, index, remove, ouvrageResult }: { form: any, index: number, remove: (index: number) => void, ouvrageResult: OuvrageResult | null }) {
+    const ouvrage = useWatch({
+        control: form.control,
+        name: `ouvrages.${index}`
+    });
+
+    return (
+        <AccordionItem value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between p-2 pr-4">
+                <AccordionTrigger className="flex-1 p-2 sm:p-4 text-lg font-semibold hover:no-underline">
+                    <div className="flex items-center gap-4 text-left">
+                        <span className="bg-primary/10 text-primary font-bold size-10 flex items-center justify-center rounded-full">
+                            #{index + 1}
+                        </span>
+                        <div>
+                            <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
+                            <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type} ({ouvrage.shape})</p>
+                        </div>
+                    </div>
+                </AccordionTrigger>
+                <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
+                    <Trash2 className="h-5 w-5"/>
+                </Button>
+            </div>
+            <AccordionContent>
+                <div className="border-t p-6 space-y-6">
+                    {/* Infos générales */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name={`ouvrages.${index}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Poutre RDC" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
+                        <FormField control={form.control} name={`ouvrages.${index}.type`} render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Type d'Ouvrage</FormLabel>
+                                <Select onValueChange={(value) => {
+                                    field.onChange(value);
+                                    if (value !== 'poteau') {
+                                        form.setValue(`ouvrages.${index}.shape`, 'rectangulaire');
+                                    }
+                                }} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger className="text-base h-11"><SelectValue/></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="poutre">Poutre</SelectItem>
+                                        <SelectItem value="poteau">Poteau</SelectItem>
+                                        <SelectItem value="semelle">Semelle</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                    </div>
+                    
+                    {ouvrage.type === 'poteau' && (
+                        <FormField
+                        control={form.control}
+                        name={`ouvrages.${index}.shape`}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Forme du Poteau</FormLabel>
+                            <FormControl>
+                                <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
+                                <ToggleGroupItem value="rectangulaire" className="gap-2 h-9">
+                                    <Square className="h-5 w-5"/> Rectangle
+                                </ToggleGroupItem>
+                                <ToggleGroupItem value="circulaire" className="gap-2 h-9">
+                                    <Circle className="h-5 w-5"/> Circulaire
+                                </ToggleGroupItem>
+                                </ToggleGroup>
+                            </FormControl>
+                            </FormItem>
+                        )}
+                        />
+                    )}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
+                        <FormField control={form.control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long./Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                        {ouvrage.shape === 'rectangulaire' ? (
+                            <>
+                                <FormField control={form.control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                                {ouvrage.type !== 'semelle' && <FormField control={form.control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut./Ép. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>}
+                            </>
+                        ) : (
+                            <FormField control={form.control} name={`ouvrages.${index}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
+                        )}
+                        <FormField control={form.control} name={`ouvrages.${index}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl> </FormItem> )}/>
+                    </div>
+
+                    <Separator/>
+                    
+                    {/* Aciers Longitudinaux */}
+                    <h4 className="font-semibold text-lg">Aciers Longitudinaux</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.diameter`} render={({ field }) => (
+                            <FormItem><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
+                        )}/>
+                        <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.count`} render={({ field }) => (
+                            <FormItem><FormLabel>Nombre de barres</FormLabel><FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl></FormItem>
+                        )}/>
+                    </div>
+
+                    {/* Aciers Transversaux */}
+                    <h4 className="font-semibold text-lg">Aciers Transversaux</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                            <FormField control={form.control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
+                            <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={ouvrage.shape === 'circulaire'}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
+                        )}/>
+                        <FormField control={form.control} name={`ouvrages.${index}.transversalBars.diameter`} render={({ field }) => (
+                            <FormItem className="sm:col-span-1"><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
+                        )}/>
+                        <FormField control={form.control} name={`ouvrages.${index}.transversalBars.spacing`} render={({ field }) => (
+                            <FormItem className="sm:col-span-1"><FormLabel>Espacement (m)</FormLabel><FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl></FormItem>
+                        )}/>
+                            <FormField control={form.control} name={`ouvrages.${index}.coating`} render={({ field }) => (
+                            <FormItem className="sm:col-span-1"><FormLabel>Enrobage (m)</FormLabel><FormControl><Input {...field} type="number" step="0.005" className="h-11"/></FormControl></FormItem>
+                        )}/>
+                    </div>
+                </div>
+                    {ouvrageResult && (
+                    <CardFooter className="bg-muted/30 border-t p-4 sm:p-6 flex-col items-start">
+                            <h4 className="text-lg font-semibold mb-2">{ouvrage.name}</h4>
+                            <p className="text-sm text-muted-foreground mb-3">Poids total: <span className="font-bold">{ouvrageResult.totalWeight.toFixed(2)} kg</span></p>
+                            <ul className="text-sm space-y-1 w-full">
+                            <li className="flex justify-between"><span>Poids longitudinaux:</span> <span className="font-bold">{ouvrageResult.longitudinalWeight.toFixed(2)} kg</span></li>
+                            <li className="flex justify-between"><span>Poids transversaux:</span> <span className="font-bold">{ouvrageResult.transversalWeight.toFixed(2)} kg</span></li>
+                            </ul>
+                    </CardFooter>
+                )}
+            </AccordionContent>
+        </AccordionItem>
+    );
+}
 
 export function SteelCalculatorForm() {
     const form = useForm<FormValues>({
@@ -176,140 +304,21 @@ export function SteelCalculatorForm() {
         setCalculationResult(result);
     }, [watchedForm]);
 
-    const watchedOuvrages = useWatch({ control: form.control, name: 'ouvrages' });
-
     return (
         <Form {...form}>
             <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
                         <Accordion type="multiple" defaultValue={['ouvrage-0', 'ouvrage-1', 'ouvrage-2']} className="space-y-6">
-                            {fields.map((field, index) => {
-                                const ouvrage = watchedOuvrages[index];
-                                const ouvrageResult = calculationResult?.ouvrageResults[index];
-                                
-                                return (
-                                <AccordionItem key={field.id} value={`ouvrage-${index}`} className="bg-card border shadow-lg rounded-lg overflow-hidden">
-                                    <div className="flex items-center justify-between p-2 pr-4">
-                                        <AccordionTrigger className="flex-1 p-2 sm:p-4 text-lg font-semibold hover:no-underline">
-                                            <div className="flex items-center gap-4 text-left">
-                                                <span className="bg-primary/10 text-primary font-bold size-10 flex items-center justify-center rounded-full">
-                                                    #{index + 1}
-                                                </span>
-                                                <div>
-                                                    <h3 className="text-lg font-semibold text-foreground capitalize">{ouvrage.name || `Ouvrage #${index + 1}`}</h3>
-                                                    <p className="text-sm font-normal text-muted-foreground capitalize">{ouvrage.type} ({ouvrage.shape})</p>
-                                                </div>
-                                            </div>
-                                        </AccordionTrigger>
-                                        <Button type="button" variant="ghost" size="icon" className="text-destructive rounded-full" onClick={() => remove(index)}>
-                                            <Trash2 className="h-5 w-5"/>
-                                        </Button>
-                                    </div>
-                                    <AccordionContent>
-                                        <div className="border-t p-6 space-y-6">
-                                            {/* Infos générales */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField control={form.control} name={`ouvrages.${index}.name`} render={({ field }) => ( <FormItem> <FormLabel>Nom</FormLabel> <FormControl><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/><Input {...field} placeholder="Ex: Poutre RDC" className="pl-10 text-base h-11"/></div></FormControl> </FormItem> )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.type`} render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Type d'Ouvrage</FormLabel>
-                                                        <Select onValueChange={(value) => {
-                                                            field.onChange(value);
-                                                            if (value !== 'poteau') {
-                                                                form.setValue(`ouvrages.${index}.shape`, 'rectangulaire');
-                                                            }
-                                                        }} defaultValue={field.value}>
-                                                            <FormControl><SelectTrigger className="text-base h-11"><SelectValue/></SelectTrigger></FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="poutre">Poutre</SelectItem>
-                                                                <SelectItem value="poteau">Poteau</SelectItem>
-                                                                <SelectItem value="semelle">Semelle</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </FormItem>
-                                                )}/>
-                                            </div>
-                                            
-                                            {ouvrage.type === 'poteau' && (
-                                                <FormField
-                                                control={form.control}
-                                                name={`ouvrages.${index}.shape`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                    <FormLabel>Forme du Poteau</FormLabel>
-                                                    <FormControl>
-                                                        <ToggleGroup type="single" value={field.value} onValueChange={field.onChange} className="w-full grid grid-cols-2 border p-1 rounded-md bg-background">
-                                                        <ToggleGroupItem value="rectangulaire" className="gap-2 h-9">
-                                                            <Square className="h-5 w-5"/> Rectangle
-                                                        </ToggleGroupItem>
-                                                        <ToggleGroupItem value="circulaire" className="gap-2 h-9">
-                                                            <Circle className="h-5 w-5"/> Circulaire
-                                                        </ToggleGroupItem>
-                                                        </ToggleGroup>
-                                                    </FormControl>
-                                                    </FormItem>
-                                                )}
-                                                />
-                                            )}
-
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
-                                                <FormField control={form.control} name={`ouvrages.${index}.length`} render={({ field }) => ( <FormItem> <FormLabel>Long./Haut. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                {ouvrage.shape === 'rectangulaire' ? (
-                                                    <>
-                                                        <FormField control={form.control} name={`ouvrages.${index}.width`} render={({ field }) => ( <FormItem> <FormLabel>Larg. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                        <FormField control={form.control} name={`ouvrages.${index}.height`} render={({ field }) => ( <FormItem> <FormLabel>Haut./Ép. (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                    </>
-                                                ) : (
-                                                    <FormField control={form.control} name={`ouvrages.${index}.diameter`} render={({ field }) => ( <FormItem className="col-span-2"> <FormLabel>Diamètre (m)</FormLabel> <FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl> </FormItem> )}/>
-                                                )}
-                                                <FormField control={form.control} name={`ouvrages.${index}.quantity`} render={({ field }) => ( <FormItem> <FormLabel>Qté</FormLabel> <FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl> </FormItem> )}/>
-                                            </div>
-
-                                            <Separator/>
-                                            
-                                            {/* Aciers Longitudinaux */}
-                                            <h4 className="font-semibold text-lg">Aciers Longitudinaux</h4>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.diameter`} render={({ field }) => (
-                                                    <FormItem><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
-                                                )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.longitudinalBars.count`} render={({ field }) => (
-                                                    <FormItem><FormLabel>Nombre de barres</FormLabel><FormControl><Input {...field} type="number" step="1" className="h-11"/></FormControl></FormItem>
-                                                )}/>
-                                            </div>
-
-                                            {/* Aciers Transversaux */}
-                                            <h4 className="font-semibold text-lg">Aciers Transversaux</h4>
-                                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                                                 <FormField control={form.control} name={`ouvrages.${index}.transversalBars.type`} render={({ field }) => (
-                                                    <FormItem className="sm:col-span-1"><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={ouvrage.shape === 'circulaire'}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="etrier">Étrier</SelectItem><SelectItem value="epingle">Épingle</SelectItem></SelectContent></Select></FormItem>
-                                                )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.transversalBars.diameter`} render={({ field }) => (
-                                                    <FormItem className="sm:col-span-1"><FormLabel>Diamètre (mm)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11"><SelectValue/></SelectTrigger></FormControl><SelectContent>{Object.keys(steelDiameters).map(d => <SelectItem key={d} value={d}>HA {d}</SelectItem>)}</SelectContent></Select></FormItem>
-                                                )}/>
-                                                <FormField control={form.control} name={`ouvrages.${index}.transversalBars.spacing`} render={({ field }) => (
-                                                    <FormItem className="sm:col-span-1"><FormLabel>Espacement (m)</FormLabel><FormControl><Input {...field} type="number" step="0.01" className="h-11"/></FormControl></FormItem>
-                                                )}/>
-                                                 <FormField control={form.control} name={`ouvrages.${index}.coating`} render={({ field }) => (
-                                                    <FormItem className="sm:col-span-1"><FormLabel>Enrobage (m)</FormLabel><FormControl><Input {...field} type="number" step="0.005" className="h-11"/></FormControl></FormItem>
-                                                )}/>
-                                            </div>
-                                        </div>
-                                         {ouvrageResult && (
-                                            <CardFooter className="bg-muted/30 border-t p-4 sm:p-6 flex-col items-start">
-                                                 <h4 className="text-lg font-semibold mb-2">{ouvrage.name}</h4>
-                                                 <p className="text-sm text-muted-foreground mb-3">Poids total: <span className="font-bold">{ouvrageResult.totalWeight.toFixed(2)} kg</span></p>
-                                                 <ul className="text-sm space-y-1 w-full">
-                                                    <li className="flex justify-between"><span>Poids longitudinaux:</span> <span className="font-bold">{ouvrageResult.longitudinalWeight.toFixed(2)} kg</span></li>
-                                                    <li className="flex justify-between"><span>Poids transversaux:</span> <span className="font-bold">{ouvrageResult.transversalWeight.toFixed(2)} kg</span></li>
-                                                 </ul>
-                                            </CardFooter>
-                                        )}
-                                    </AccordionContent>
-                                </AccordionItem>
-                                )
-                            })}
+                            {fields.map((field, index) => (
+                                <OuvrageSteelItem 
+                                    key={field.id} 
+                                    form={form} 
+                                    index={index} 
+                                    remove={remove}
+                                    ouvrageResult={calculationResult?.ouvrageResults[index] || null}
+                                />
+                            ))}
                         </Accordion>
                          <Button type="button" variant="secondary" className="w-full h-12 text-base" onClick={() => append({ name: "Nouveau", type: 'poutre', shape: 'rectangulaire', length: 1, width: 0.2, height: 0.2, quantity: 1, longitudinalBars: { diameter: "10", count: 4 }, transversalBars: { type: 'etrier', diameter: "6", spacing: 0.25 }, coating: 0.025 })}>
                             <PlusCircle className="mr-2 h-5 w-5" />
