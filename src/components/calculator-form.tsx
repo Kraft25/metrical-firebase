@@ -127,7 +127,6 @@ const OuvrageItem = ({ ouvrageIndex, control, removeOuvrage, dosageResult }: { o
     });
     
     const watchedOuvrage = useWatch({ control, name: `ouvrages.${ouvrageIndex}` });
-    
     const dosageInfo = concreteDosages[watchedOuvrage.dosage as keyof typeof concreteDosages];
     
     if (!dosageInfo) return null; // Safe early return after all hooks are called.
@@ -285,7 +284,7 @@ export function CalculatorForm() {
         return null;
     }
     let totalVolume = 0;
-    const byDosage: DosageResult['byDosage'] = [];
+    const byDosage: DosageResult[] = [];
 
     values.ouvrages.forEach((ouvrage, index) => {
         const dosageInfo = concreteDosages[ouvrage.dosage as keyof typeof concreteDosages];

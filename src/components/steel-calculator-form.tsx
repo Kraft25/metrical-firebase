@@ -44,12 +44,12 @@ const ouvrageSchema = z.object({
     spacing: z.coerce.number().positive("Espacement requis."),
   }),
   coating: z.coerce.number().min(0).default(0.025), // Enrobage de 2.5cm par défaut
-}).refine(data => data.type !== 'poteau' ? data.shape === 'rectangulaire' : true, {
+}).refine(data => data.type === 'poteau' || data.shape !== 'circulaire', {
     message: "Seuls les poteaux peuvent être circulaires.",
     path: ['shape'],
 }).refine(data => {
     if (data.shape === 'rectangulaire') {
-        return data.width !== undefined && data.height !== undefined;
+        return data.width !== undefined && (data.height !== undefined || data.type === 'semelle');
     }
     return true;
 }, {
