@@ -52,7 +52,8 @@ export function WaterproofingCalculatorForm({ form, blockFormValues }: Waterproo
     const watchedForm = useWatch({ control: form.control });
 
     const totalSurfaceFromBlocks = useMemo(() => {
-        return (blockFormValues?.components || []).reduce((acc, comp) => {
+        if (!blockFormValues?.components) return 0;
+        return (blockFormValues.components).reduce((acc, comp) => {
             const length = Number(comp.length) || 0;
             const height = Number(comp.height) || 0;
             return acc + (length * height);
