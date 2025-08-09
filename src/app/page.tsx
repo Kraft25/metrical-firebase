@@ -1,13 +1,34 @@
 
-import { CalculatorForm } from '@/components/calculator-form';
-import { BlockCalculatorForm } from '@/components/block-calculator-form';
-import { PlasterCalculatorForm } from '@/components/plaster-calculator-form';
-import { WaterproofingCalculatorForm } from '@/components/waterproofing-calculator-form';
-import { SteelCalculatorForm } from '@/components/steel-calculator-form';
+import dynamic from 'next/dynamic';
+import { Calculator, Ungroup, Layers, Droplets, GitCommitHorizontal, FileText, Loader } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calculator, Ungroup, Layers, Droplets, GitCommitHorizontal, FileText } from 'lucide-react';
 import { AppSummary } from '@/components/app-summary';
-import { DqeForm } from '@/components/dqe-form';
+
+const LoadingComponent = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
+const CalculatorForm = dynamic(() => import('@/components/calculator-form').then(mod => mod.CalculatorForm), {
+  loading: () => <LoadingComponent />,
+});
+const BlockCalculatorForm = dynamic(() => import('@/components/block-calculator-form').then(mod => mod.BlockCalculatorForm), {
+  loading: () => <LoadingComponent />,
+});
+const PlasterCalculatorForm = dynamic(() => import('@/components/plaster-calculator-form').then(mod => mod.PlasterCalculatorForm), {
+  loading: () => <LoadingComponent />,
+});
+const WaterproofingCalculatorForm = dynamic(() => import('@/components/waterproofing-calculator-form').then(mod => mod.WaterproofingCalculatorForm), {
+  loading: () => <LoadingComponent />,
+});
+const SteelCalculatorForm = dynamic(() => import('@/components/steel-calculator-form').then(mod => mod.SteelCalculatorForm), {
+  loading: () => <LoadingComponent />,
+});
+const DqeForm = dynamic(() => import('@/components/dqe-form').then(mod => mod.DqeForm), {
+  loading: () => <LoadingComponent />,
+});
+
 
 export default function Home() {
   return (
