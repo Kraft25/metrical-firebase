@@ -78,7 +78,7 @@ export function BlockCalculatorForm() {
                 return acc + (comp.length * comp.height);
             }, 0);
             
-            const blocksNeeded = Math.ceil(totalSurface * 10);
+            const blocksNeeded = Math.ceil(totalSurface * 12.5);
 
             setCalculationResult({ blocksNeeded, totalSurface });
         }
@@ -175,7 +175,7 @@ export function BlockCalculatorForm() {
                         <CardTitle>Référence de Calcul</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Basé sur une référence de 10 parpaings par m² (pour des parpaings de 20x20x50 cm).</p>
+                        <p className="text-sm text-muted-foreground">Basé sur une référence de 12.5 parpaings par m² (pour des parpaings de 20x20x40 cm avec joint).</p>
                     </CardContent>
                 </Card>
                  {calculationResult && (
