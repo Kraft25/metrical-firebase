@@ -10,13 +10,13 @@ import { DqeForm } from '@/components/dqe-form';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-4 sm:p-8 lg:p-16 bg-background">
+    <main className="flex min-h-screen flex-col items-center justify-between p-4 sm:p-8 lg:p-16 bg-background">
       <div className="w-full max-w-7xl mx-auto">
         <header className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 sm:gap-4">
             <Calculator className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
-              Métrical Pro
+              Métrical
             </h1>
           </div>
           <p className="mt-2 text-md sm:text-lg text-muted-foreground">
@@ -67,6 +67,11 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </div>
+      <footer className="w-full text-center mt-16">
+        <p className="text-sm text-muted-foreground">
+          Créé par Daniel HK
+        </p>
+      </footer>
     </main>
   );
 }

@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Métrical Pro',
+  title: 'Métrical',
   description: 'Calculez facilement et avec précision le métré de vos ouvrages.',
 };
 
