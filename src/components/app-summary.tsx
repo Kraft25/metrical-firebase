@@ -29,7 +29,7 @@ export function AppSummary() {
   ];
 
   return (
-    <Accordion type="multiple" className="w-full mb-8 shadow-lg rounded-lg bg-card border">
+    <Accordion type="multiple" defaultValue={[]} className="w-full mb-8 shadow-lg rounded-lg bg-card border">
       <AccordionItem value="item-1">
         <AccordionTrigger className="p-6 text-2xl font-semibold text-foreground hover:no-underline">
           <div className="flex items-center gap-3">
@@ -64,7 +64,7 @@ export function AppSummary() {
         <AccordionContent className="px-6 pb-6">
            <div className="text-center text-muted-foreground max-w-3xl mx-auto space-y-4">
             <p className="font-semibold text-destructive text-lg">
-              Les calculs fournis par cette application sont des estimations et ne doivent en aucun cas remplacer une étude technique professionnelle réalisée par un bureau d'études ou un ingénieur qualifié.
+              Cette application est une aide à l'estimation. Les calculs fournis ne doivent en aucun cas remplacer une étude technique professionnelle réalisée par un bureau d'études ou un ingénieur qualifié.
             </p>
             <p>
               L'auteur décline toute responsabilité quant à l'exactitude des résultats et aux décisions prises sur la base de ces estimations. Prévoyez toujours une marge de sécurité (généralement 10-15%) pour les pertes et les imprévus de chantier.
