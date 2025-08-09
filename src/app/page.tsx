@@ -2,8 +2,9 @@ import { CalculatorForm } from '@/components/calculator-form';
 import { BlockCalculatorForm } from '@/components/block-calculator-form';
 import { PlasterCalculatorForm } from '@/components/plaster-calculator-form';
 import { WaterproofingCalculatorForm } from '@/components/waterproofing-calculator-form';
+import { SteelCalculatorForm } from '@/components/steel-calculator-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calculator, Ungroup, Layers, Droplets } from 'lucide-react';
+import { Calculator, Ungroup, Layers, Droplets, GitCommitHorizontal } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -22,7 +23,7 @@ export default function Home() {
         </header>
 
         <Tabs defaultValue="volume" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="volume">
               <Calculator className="mr-2" /> Calcul de Volume
             </TabsTrigger>
@@ -34,6 +35,9 @@ export default function Home() {
             </TabsTrigger>
             <TabsTrigger value="waterproofing">
               <Droplets className="mr-2" /> Calcul d'Étanchéité
+            </TabsTrigger>
+            <TabsTrigger value="steel">
+              <GitCommitHorizontal className="mr-2" /> Calcul Aciers
             </TabsTrigger>
           </TabsList>
           <TabsContent value="volume" className="mt-6">
@@ -47,6 +51,9 @@ export default function Home() {
           </TabsContent>
            <TabsContent value="waterproofing" className="mt-6">
             <WaterproofingCalculatorForm />
+          </TabsContent>
+          <TabsContent value="steel" className="mt-6">
+            <SteelCalculatorForm />
           </TabsContent>
         </Tabs>
       </div>
