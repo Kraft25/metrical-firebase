@@ -17,15 +17,17 @@ export function useFormPersistence({ control, name, setValue }: { control: any, 
 
     const watchedForm = useWatch({ control });
 
-    const debouncedSave = debounce((data) => {
-        try {
-            if (!isInitialLoad.current) {
-                window.localStorage.setItem(name, JSON.stringify(data));
+    const debouncedSave = useRef(
+        debounce((data) => {
+            try {
+                if (!isInitialLoad.current) {
+                    window.localStorage.setItem(name, JSON.stringify(data));
+                }
+            } catch (error) {
+                console.error(`Failed to save form data for "${name}" to localStorage`, error);
             }
-        } catch (error) {
-            console.error(`Failed to save form data for "${name}" to localStorage`, error);
-        }
-    }, 500);
+        }, 500)
+    ).current;
 
     useEffect(() => {
         try {
@@ -33,7 +35,9 @@ export function useFormPersistence({ control, name, setValue }: { control: any, 
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
                 for (const key in parsedData) {
-                    setValue(key, parsedData[key], { shouldValidate: true });
+                    if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
+                         setValue(key, parsedData[key], { shouldValidate: true });
+                    }
                 }
             }
         } catch (error) {
@@ -45,8 +49,8 @@ export function useFormPersistence({ control, name, setValue }: { control: any, 
     }, [name, setValue]);
 
     useEffect(() => {
-        const subscription = control.register('subscription', () => {});
-        debouncedSave(watchedForm);
-        return () => subscription.unsubscribe();
-    }, [watchedForm, debouncedSave, control]);
+        if (!isInitialLoad.current) {
+            debouncedSave(watchedForm);
+        }
+    }, [watchedForm, debouncedSave]);
 }
