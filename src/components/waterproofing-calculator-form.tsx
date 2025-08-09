@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import type { FormValues as BlockFormValues } from './block-calculator-form';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -39,9 +40,10 @@ type CalculationResult = {
 
 interface WaterproofingCalculatorFormProps {
     form: UseFormReturn<FormValues>;
+    blockFormValues: BlockFormValues;
 }
 
-export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFormProps) {
+export function WaterproofingCalculatorForm({ form, blockFormValues }: WaterproofingCalculatorFormProps) {
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: 'components',
@@ -49,16 +51,26 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
     
     const watchedForm = useWatch({ control: form.control });
 
+    const totalSurfaceFromBlocks = useMemo(() => {
+        return (blockFormValues?.components || []).reduce((acc, comp) => {
+            const length = Number(comp.length) || 0;
+            const height = Number(comp.height) || 0;
+            return acc + (length * height);
+        }, 0);
+    }, [blockFormValues?.components]);
+
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        if (!values.components || !values.consumption || !values.layers) {
+        if (!values.consumption || !values.layers) {
             return null;
         }
 
-        const totalSurface = values.components.reduce((acc, comp) => {
-            return acc + comp.area;
+        const manualSurface = values.components.reduce((acc, comp) => {
+            return acc + (comp.area || 0);
         }, 0);
         
+        const totalSurface = totalSurfaceFromBlocks + manualSurface;
+
         if (totalSurface === 0) return null;
 
         const totalProduct = totalSurface * values.consumption * values.layers;
@@ -67,7 +79,7 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
             totalSurface,
             totalProduct,
         };
-    }, [watchedForm]);
+    }, [watchedForm, totalSurfaceFromBlocks]);
 
 
   return (
@@ -79,7 +91,7 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
                     <CardHeader>
                         <CardTitle>Calcul d'Étanchéité</CardTitle>
                         <CardDescription>
-                            Vous pouvez ajouter des surfaces manuelles ici, ou laisser vide pour utiliser la surface de la maçonnerie.
+                            La surface de la maçonnerie est incluse. Ajoutez ici des surfaces supplémentaires (ex: dalles, fondations).
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -192,7 +204,7 @@ export function WaterproofingCalculatorForm({ form }: WaterproofingCalculatorFor
                         </CardHeader>
                         <CardContent>
                            <p className="text-muted-foreground">
-                            Entrez les paramètres et ajoutez au moins une surface manuelle pour voir les résultats.
+                            Entrez les paramètres et définissez une surface (dans Maçonnerie ou ici) pour voir les résultats.
                            </p>
                         </CardContent>
                     </Card>

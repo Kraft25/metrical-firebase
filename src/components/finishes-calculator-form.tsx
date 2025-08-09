@@ -17,12 +17,6 @@ interface FinishesCalculatorFormProps {
 
 export function FinishesCalculatorForm({ plasterForm, waterproofingForm, blockFormValues }: FinishesCalculatorFormProps) {
     
-    const totalSurfaceFromBlocks = (blockFormValues.components || []).reduce((acc, comp) => {
-        const length = Number(comp.length) || 0;
-        const height = Number(comp.height) || 0;
-        return acc + (length * height);
-    }, 0);
-
     return (
         <div className="space-y-8">
             <Card>
@@ -40,7 +34,7 @@ export function FinishesCalculatorForm({ plasterForm, waterproofingForm, blockFo
 
             <PlasterCalculatorForm form={plasterForm} blockFormValues={blockFormValues} />
             <Separator className="my-8" />
-            <WaterproofingCalculatorForm form={waterproofingForm} />
+            <WaterproofingCalculatorForm form={waterproofingForm} blockFormValues={blockFormValues} />
         </div>
     );
 }

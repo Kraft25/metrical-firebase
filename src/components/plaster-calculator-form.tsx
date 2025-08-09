@@ -55,12 +55,12 @@ export function PlasterCalculatorForm({ form, blockFormValues }: PlasterCalculat
     const watchedForm = useWatch({ control: form.control });
 
     const totalSurfaceFromBlocks = useMemo(() => {
-        return (blockFormValues.components || []).reduce((acc, comp) => {
+        return (blockFormValues?.components || []).reduce((acc, comp) => {
             const length = Number(comp.length) || 0;
             const height = Number(comp.height) || 0;
             return acc + (length * height);
         }, 0);
-    }, [blockFormValues.components]);
+    }, [blockFormValues?.components]);
 
 
     const calculationResult = useMemo(() => {
