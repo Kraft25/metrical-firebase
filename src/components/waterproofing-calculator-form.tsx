@@ -2,8 +2,7 @@
 "use client";
 
 import { useMemo } from 'react';
-import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import * as z from 'zod';
 import type { FormValues as BlockFormValues } from './block-calculator-form';
 
@@ -18,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Trash2, Building, AreaChart, Droplets, Layers } from 'lucide-react';
-import { Separator } from './ui/separator';
 
 const surfaceComponentSchema = z.object({
   name: z.string().min(1, 'Le nom est requis.'),
@@ -40,7 +38,7 @@ type CalculationResult = {
 
 interface WaterproofingCalculatorFormProps {
     form: UseFormReturn<FormValues>;
-    blockFormValues: BlockFormValues;
+    blockFormValues: BlockFormValues | undefined;
 }
 
 export function WaterproofingCalculatorForm({ form, blockFormValues }: WaterproofingCalculatorFormProps) {
@@ -62,12 +60,12 @@ export function WaterproofingCalculatorForm({ form, blockFormValues }: Waterproo
 
     const calculationResult = useMemo(() => {
         const values = watchedForm as FormValues;
-        if (!values.consumption || !values.layers) {
+        if (!values.consumption || !values.layers || values.consumption <= 0 || values.layers <= 0) {
             return null;
         }
 
-        const manualSurface = values.components.reduce((acc, comp) => {
-            return acc + (comp.area || 0);
+        const manualSurface = (values.components || []).reduce((acc, comp) => {
+            return acc + (Number(comp.area) || 0);
         }, 0);
         
         const totalSurface = totalSurfaceFromBlocks + manualSurface;

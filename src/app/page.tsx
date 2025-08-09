@@ -95,6 +95,8 @@ export default function Home() {
     }
     reset();
   };
+  
+  const blockFormValues = blockForm.watch();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 sm:p-8 lg:p-16 bg-background">
@@ -139,7 +141,7 @@ export default function Home() {
             <FinishesCalculatorForm
               plasterForm={plasterForm}
               waterproofingForm={waterproofingForm}
-              blockFormValues={blockForm.watch()}
+              blockFormValues={blockFormValues}
             />
           </TabsContent>
           <TabsContent value="steel" className="mt-6">
@@ -232,5 +234,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
