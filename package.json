@@ -1,5 +1,5 @@
 {
-  "name": "mtrical-pro",
+  "name": "metrical-pro",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -43,7 +43,7 @@
     "firebase": "^10.12.4",
     "genkit": "^1.16.0",
     "lucide-react": "^0.417.0",
-    "next": "^14.2.5",
+    "next": "^13.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
